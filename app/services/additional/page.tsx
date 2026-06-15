@@ -1,0 +1,252 @@
+"use client";
+
+import React from "react";
+import { motion } from "framer-motion";
+import {
+  Users,
+  GraduationCap,
+  FileText,
+  HelpCircle,
+  ArrowRight,
+  Sparkles,
+  Clock,
+  CheckCircle,
+} from "lucide-react";
+
+export default function AdditionalServicesEditorialPage() {
+  const scrollTriggerConfig = { once: true, margin: "-100px" };
+
+  const advancedServices = [
+    {
+      num: "01",
+      title: "Parent & Behavior Management Training",
+      desc: "Evidence-based training using a consultee-centered model. We equip parents and caregivers with practical strategies, emotional regulation tools, and confidence to support their child’s long-term success.",
+      rate: "$150",
+      unit: "per hour",
+      icon: Users,
+      tag: "BEHAVIORAL",
+      highlight: true,
+      features: [
+        "Custom strategies",
+        "Progress tracking",
+        "Home implementation support",
+      ],
+    },
+    {
+      num: "02",
+      title: "Special Education Advocacy & Support",
+      desc: "Expert guidance through the IEP/504 process, comprehensive record review, and preparation for school meetings. We help you secure the accommodations your child deserves.",
+      rate: "$150–$200",
+      unit: "per hour",
+      icon: GraduationCap,
+      tag: "ADVOCACY",
+      features: ["IEP/504 review", "Meeting preparation", "Rights navigation"],
+    },
+    {
+      num: "03",
+      title: "Disability Documentation Management",
+      desc: "Professional preparation, completion, and validation of medical forms, accommodation letters, and detailed reports for schools and workplaces.",
+      rate: "$150",
+      unit: "per document",
+      icon: FileText,
+      tag: "COMPLIANCE",
+      features: [
+        "School forms",
+        "Workplace accommodations",
+        "Insurance documentation",
+      ],
+    },
+    {
+      num: "04",
+      title: "Clinical Consultation & Treatment Planning",
+      desc: "Strategic consultations for clinicians, schools, or families. We help align evaluations with actionable, integrated treatment plans.",
+      rate: "$175–$200",
+      unit: "per hour",
+      icon: HelpCircle,
+      tag: "STRATEGY",
+      features: [
+        "Cross-provider coordination",
+        "Treatment alignment",
+        "Long-term planning",
+      ],
+    },
+  ];
+
+  return (
+    <section className="bg-[#FAF8F5] text-[#12221F]" id="services-portfolio">
+      {/* Hero Section */}
+      <div className="bg-[#023B37] pt-32 pb-28 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
+        <div className="absolute -top-32 -right-32 w-[600px] h-[600px] bg-[#067F76]/20 blur-[180px] rounded-full" />
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-3xl"
+          >
+            <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 border border-white/10 text-[#67E8D6] text-sm font-semibold tracking-widest">
+              <Sparkles className="w-4 h-4" />
+              BEYOND TESTING
+            </div>
+
+            <h1 className="text-6xl md:text-7xl font-black tracking-tighter leading-[1.05] mt-6">
+              Expert Support
+              <br />
+              <span className="bg-gradient-to-r from-[#67E8D6] via-[#A5F3E4] to-[#67E8D6] bg-clip-text text-transparent">
+                That Actually Helps
+              </span>
+            </h1>
+
+            <p className="mt-8 text-xl text-slate-300 max-w-xl leading-relaxed">
+              Practical, compassionate consulting and advocacy that turns
+              clinical insights into real-world success.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-24">
+        <div className="grid lg:grid-cols-12 gap-16">
+          {/* Sidebar */}
+          <div className="lg:col-span-4 lg:sticky lg:top-12 space-y-10">
+            <div>
+              <h2 className="text-4xl font-black text-[#023B37] leading-tight">
+                Real support for real life
+              </h2>
+              <div className="w-20 h-1.5 bg-[#067F76] rounded-full mt-6" />
+              <p className="text-stone-600 leading-relaxed mt-8 text-lg">
+                We don’t just test — we walk alongside families and
+                professionals to make sure the recommendations actually get
+                implemented.
+              </p>
+            </div>
+
+            <div className="bg-[#EFEBE4] border border-[#E0DBCF] rounded-3xl p-8">
+              <div className="flex gap-4">
+                <Clock className="w-7 h-7 text-[#067F76] shrink-0 mt-1" />
+                <div>
+                  <p className="font-semibold text-[#023B37]">
+                    Initial Consultation
+                  </p>
+                  <p className="text-sm text-stone-600 mt-2">
+                    50-minute compatibility and needs assessment. Full services
+                    begin after intake.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Service Cards */}
+          <div className="lg:col-span-8 space-y-8">
+            {advancedServices.map((service, idx) => {
+              const Icon = service.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={scrollTriggerConfig}
+                  transition={{ delay: idx * 0.08 }}
+                  className={`group relative bg-white rounded-3xl p-10 border transition-all duration-500 hover:-translate-y-1 ${
+                    service.highlight
+                      ? "border-[#067F76] shadow-2xl shadow-[#067F76]/15"
+                      : "border-stone-200 hover:border-[#067F76]/30 hover:shadow-xl"
+                  }`}
+                >
+                  <div className="flex flex-col lg:flex-row gap-10">
+                    <div className="shrink-0">
+                      <div className="w-16 h-16 rounded-2xl bg-[#067F76]/5 flex items-center justify-center group-hover:bg-[#067F76]/10 transition-colors">
+                        <Icon className="w-8 h-8 text-[#067F76]" />
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-6">
+                        <div>
+                          <span className="text-sm font-mono text-[#067F76] tracking-[3px] font-semibold">
+                            {service.num}
+                          </span>
+                          <h3 className="text-3xl font-black text-[#023B37] tracking-tight mt-2 leading-tight">
+                            {service.title}
+                          </h3>
+                        </div>
+
+                        <span className="px-4 py-1.5 text-xs font-bold tracking-widest bg-stone-100 text-stone-500 rounded-xl self-start">
+                          {service.tag}
+                        </span>
+                      </div>
+
+                      <p className="mt-6 text-stone-600 leading-relaxed text-[17px]">
+                        {service.desc}
+                      </p>
+
+                      {/* Features */}
+                      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {service.features.map((feature, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 text-sm text-stone-600"
+                          >
+                            <CheckCircle className="w-4 h-4 text-[#067F76]" />
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex flex-wrap items-end justify-between gap-6 pt-10 mt-10 border-t border-stone-100">
+                        <div>
+                          <span className="text-4xl font-black text-[#023B37]">
+                            {service.rate}
+                          </span>
+                          <span className="text-stone-400 text-sm ml-2 font-medium">
+                            {service.unit}
+                          </span>
+                        </div>
+
+                        <a
+                          href="/contact"
+                          className="group/btn inline-flex items-center gap-3 bg-[#023B37] hover:bg-[#067F76] text-white font-semibold px-8 py-4 rounded-2xl transition-all active:scale-95"
+                        >
+                          Get Started
+                          <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-[#023B37] py-28 text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={scrollTriggerConfig}
+          className="max-w-lg mx-auto px-6"
+        >
+          <Sparkles className="w-14 h-14 mx-auto mb-8 text-[#67E8D6]" />
+          <h2 className="text-5xl font-black text-white tracking-tight">
+            Ready to move forward?
+          </h2>
+          <p className="mt-6 text-slate-400 text-lg">
+            Let’s create a clear, practical plan tailored to your family’s
+            unique needs.
+          </p>
+          <a
+            href="/contact"
+            className="mt-10 inline-block bg-[#067F76] hover:bg-[#056b63] text-white px-12 py-5 rounded-2xl font-semibold text-lg transition-all shadow-xl shadow-[#067F76]/30 hover:shadow-2xl"
+          >
+            Schedule Consultation
+          </a>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
