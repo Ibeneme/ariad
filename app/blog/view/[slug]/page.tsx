@@ -1,24 +1,34 @@
 // app/blog/[slug]/page.tsx
-
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/configs/supabase";
 import BlogPostEach from "./BlogPostEach";
 
-// Forces SSR on every request — required when slugs come from a database.
-// Without this, Next.js tries to statically pre-render and 404s anything
-// it didn't know about at build time.
-export const dynamic = "force-dynamic";
-
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
+// Optional: Pre-render known slugs at build time (highly recommended)
+export async function generateStaticParams() {
+  const { data: posts } = await supabase
+    .from("articles")
+    .select("slug")
+    .eq("published", true) // add any filters you use
+    .limit(100); // adjust as needed
+
+  return (posts || []).map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+// Keep dynamic for new/updated posts
+export const dynamicParams = true; // default, but explicit is good
+// export const dynamic = "force-dynamic"; // only use if you want ZERO static rendering
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
- 
 
-  console.warn(slug, 'slugslug')
+  console.warn("generateMetadata slug:", slug); // better than console.warn(slug, 'slugslug')
 
   const { data: post, error } = await supabase
     .from("articles")
