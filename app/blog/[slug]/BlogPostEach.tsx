@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+// app/blog/[slug]/BlogPostEach.tsx
+
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, User, ArrowLeft, Share2 } from "lucide-react";
+import DOMPurify from "isomorphic-dompurify";
 import { supabase } from "@/lib/configs/supabase";
 
 const heroBgFallback =
@@ -29,60 +32,115 @@ interface BlogPostClientProps {
   initialPost: any;
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatArticle(data: any): BlogPost {
+  const words = data.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
+  const computedReadTime = Math.max(1, Math.ceil(words / 200)) + " min read";
+  const formattedDate = data.created_at
+    ? new Date(data.created_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Recent";
+
+  return {
+    id: data.id,
+    slug: data.slug,
+    title: data.title,
+    excerpt: data.excerpt || "",
+    content: data.content || "",
+    category: data.category || "General",
+    date: formattedDate,
+    readTime: computedReadTime,
+    image: data.image_url || heroBgFallback,
+    ogImage: data.og_image_url,
+    author: data.author || "ARIAD Team",
+  };
+}
+
+function formatRelated(article: any): BlogPost {
+  const words =
+    article.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
+  return {
+    id: article.id,
+    slug: article.slug,
+    title: article.title,
+    excerpt: article.excerpt || "",
+    content: article.content || "",
+    category: article.category || "General",
+    date: new Date(article.created_at).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+    }),
+    readTime: Math.max(1, Math.ceil(words / 200)) + " min read",
+    image: article.image_url || heroBgFallback,
+    author: article.author || "ARIAD Team",
+  };
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function BlogPostEach({
   slug,
   initialPost,
 }: BlogPostClientProps) {
-  const [post, setPost] = useState<BlogPost | null>(null);
+  const [post, setPost] = useState<BlogPost | null>(
+    // Hydrate immediately from the server-fetched data — no loading flash.
+    initialPost ? formatArticle(initialPost) : null
+  );
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Only show skeleton when there is genuinely no data yet.
+  const [loading, setLoading] = useState(!initialPost);
+  const [shareSuccess, setShareSuccess] = useState(false);
+
+  // Track whether we've already fetched related posts so we don't
+  // re-run when the parent re-renders and passes a new initialPost object.
+  const relatedFetched = useRef(false);
 
   useEffect(() => {
+    // If we got initialPost from the server, skip the article fetch entirely
+    // and just grab related posts once.
+    if (initialPost) {
+      if (relatedFetched.current) return;
+      relatedFetched.current = true;
+
+      const fetchRelated = async () => {
+        const { data: relatedData } = await supabase
+          .from("articles")
+          .select("*")
+          .eq("category", initialPost.category)
+          .neq("slug", slug)
+          .limit(3)
+          .order("created_at", { ascending: false });
+
+        if (relatedData) {
+          setRelatedPosts(relatedData.map(formatRelated));
+        }
+      };
+
+      fetchRelated();
+      return;
+    }
+
+    // Fallback: no initialPost — fetch everything client-side.
     const fetchPost = async () => {
       try {
         setLoading(true);
 
-        let data = initialPost;
+        const { data, error } = await supabase
+          .from("articles")
+          .select("*")
+          .eq("slug", slug)
+          .single();
 
-        if (!data) {
-          const { data: fetchedData } = await supabase
-            .from("articles")
-            .select("*")
-            .eq("slug", slug)
-            .single();
-          data = fetchedData;
+        if (error || !data) {
+          console.error("Article not found:", slug);
+          return;
         }
 
-        if (!data) return;
-
-        const words =
-          data.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
-        const computedReadTime =
-          Math.max(1, Math.ceil(words / 200)) + " min read";
-
-        const formattedDate = data.created_at
-          ? new Date(data.created_at).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
-          : "Recent";
-
-        const formattedPost: BlogPost = {
-          id: data.id,
-          slug: data.slug,
-          title: data.title,
-          excerpt: data.excerpt,
-          content: data.content,
-          category: data.category || "General",
-          date: formattedDate,
-          readTime: computedReadTime,
-          image: data.image_url || heroBgFallback,
-          ogImage: data.og_image_url,
-          author: data.author || "ARIAD Team",
-        };
-
-        setPost(formattedPost);
+        setPost(formatArticle(data));
 
         const { data: relatedData } = await supabase
           .from("articles")
@@ -93,29 +151,7 @@ export default function BlogPostEach({
           .order("created_at", { ascending: false });
 
         if (relatedData) {
-          const formattedRelated = relatedData.map((article: any) => ({
-            id: article.id,
-            slug: article.slug,
-            title: article.title,
-            excerpt: article.excerpt,
-            content: article.content,
-            category: article.category,
-            date: new Date(article.created_at).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-            }),
-            readTime:
-              Math.max(
-                1,
-                Math.ceil(
-                  (article.content?.replace(/<[^>]*>/g, "").split(/\s+/)
-                    .length || 0) / 200
-                )
-              ) + " min read",
-            image: article.image_url || heroBgFallback,
-            author: article.author,
-          }));
-          setRelatedPosts(formattedRelated);
+          setRelatedPosts(relatedData.map(formatRelated));
         }
       } catch (err) {
         console.error("Error fetching blog post:", err);
@@ -125,7 +161,34 @@ export default function BlogPostEach({
     };
 
     fetchPost();
-  }, [slug, initialPost]);
+    // ⚠️ Intentionally NOT including initialPost in deps — it is a plain
+    // object prop that changes reference every render. slug is the real key.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
+  // ── Share handler ───────────────────────────────────────────────────────
+  const handleShare = async () => {
+    if (!post) return;
+    if (!navigator.share) {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2500);
+      } catch (err) {
+        console.error("Failed to copy link", err);
+      }
+      return;
+    }
+    try {
+      await navigator.share({
+        title: post.title,
+        text: post.excerpt,
+        url: window.location.href,
+      });
+    } catch (err: any) {
+      if (err.name !== "AbortError") console.error("Share failed:", err);
+    }
+  };
 
   if (loading) return <ArticleSkeleton />;
 
@@ -145,9 +208,50 @@ export default function BlogPostEach({
     );
   }
 
+  // Sanitize the HTML from the rich-text editor before rendering.
+  // This removes <script> tags, event handlers (onclick, onerror …),
+  // and any other vectors for XSS while keeping all formatting intact.
+  const sanitizedContent = DOMPurify.sanitize(post.content, {
+    ALLOWED_TAGS: [
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "p",
+      "div",
+      "br",
+      "hr",
+      "strong",
+      "b",
+      "em",
+      "i",
+      "u",
+      "s",
+      "strike",
+      "ul",
+      "ol",
+      "li",
+      "blockquote",
+      "code",
+      "pre",
+      "a",
+      "img",
+      "span",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+    ],
+    ALLOWED_ATTR: ["href", "target", "rel", "src", "alt", "style", "class"],
+  });
+
   return (
     <div className="bg-[#FAF8F5] min-h-screen pb-20">
-      {/* ── Article content styles ───────────────────────────────────── */}
+      {/* ── Article content styles ─────────────────────────────────────── */}
       <style>{`
         .article-body h1 {
           font-size: 1.9rem;
@@ -177,13 +281,11 @@ export default function BlogPostEach({
           margin: 1em 0 0.4em;
           line-height: 1.4;
         }
-
         .article-body p {
           color: #334155;
           line-height: 1.85;
           margin: 0 0 1.1em;
         }
-
         .article-body ul {
           list-style-type: disc !important;
           padding-left: 1.75em !important;
@@ -208,7 +310,6 @@ export default function BlogPostEach({
           line-height: 1.75;
           margin-bottom: 0.35em;
         }
-
         .article-body blockquote {
           border-left: 4px solid #067F76;
           padding: 0.6em 1.2em;
@@ -218,7 +319,6 @@ export default function BlogPostEach({
           background: #f0fafa;
           border-radius: 0 0.5em 0.5em 0;
         }
-
         .article-body code {
           background: #e2e8f0;
           padding: 0.15em 0.45em;
@@ -227,7 +327,18 @@ export default function BlogPostEach({
           font-size: 0.88em;
           color: #023B37;
         }
-
+        .article-body pre {
+          background: #0f2622;
+          color: #e6f3f1;
+          padding: 1em;
+          border-radius: 0.75em;
+          overflow-x: auto;
+        }
+        .article-body pre code {
+          background: transparent;
+          color: inherit;
+          padding: 0;
+        }
         .article-body a {
           color: #067F76;
           text-decoration: underline;
@@ -236,44 +347,62 @@ export default function BlogPostEach({
         .article-body a:hover {
           color: #023B37;
         }
-
         .article-body strong {
           font-weight: 700;
           color: #023B37;
         }
-
         .article-body em {
           font-style: italic;
         }
-
+        .article-body img {
+          max-width: 100%;
+          border-radius: 0.75em;
+          margin: 1.2em 0;
+        }
+        .article-body table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.2em 0;
+        }
+        .article-body th,
+        .article-body td {
+          border: 1px solid #e2e8f0;
+          padding: 0.6em 0.8em;
+          text-align: left;
+        }
+        .article-body th {
+          background: #f1f4f9;
+          color: #023B37;
+        }
         .article-body [style*="line-height"] {
           line-height: inherit !important;
         }
       `}</style>
 
-      {/* Back Button */}
+      {/* ── Back Button ── */}
       <div className="max-w-4xl mx-auto px-6 pt-8">
         <Link
           href="/blog"
-          className="inline-flex items-center gap-2 text-[#067F76] hover:text-[#023B37] transition-colors"
+          className="inline-flex items-center gap-2 text-[#067F76] hover:text-[#023B37] transition-colors text-sm font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
           Back to All Articles
         </Link>
       </div>
 
-      {/* Hero */}
-      <section className="relative h-[70vh] flex items-end">
+      {/* ── Hero ── */}
+      <section className="relative h-[70vh] flex items-end mt-6">
         <Image
           src={post.image}
           alt={post.title}
           fill
           className="object-cover"
           priority
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 pb-16 text-white">
+        <div className="relative z-10 max-w-4xl mx-auto px-6 pb-16 text-white w-full">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-sm mb-6">
             {post.category}
           </div>
@@ -297,46 +426,27 @@ export default function BlogPostEach({
             </div>
 
             <button
-              onClick={async () => {
-                if (!navigator.share) {
-                  try {
-                    await navigator.clipboard.writeText(window.location.href);
-                    alert("✅ Link copied to clipboard!");
-                  } catch (err) {
-                    console.error("Failed to copy link", err);
-                  }
-                  return;
-                }
-                try {
-                  await navigator.share({
-                    title: post.title,
-                    text: post.excerpt,
-                    url: window.location.href,
-                  });
-                } catch (err: any) {
-                  if (err.name !== "AbortError")
-                    console.error("Share failed:", err);
-                }
-              }}
+              onClick={handleShare}
               className="flex items-center gap-2 hover:text-[#67E8D6] transition-colors"
             >
-              <Share2 className="w-5 h-5" /> Share
+              <Share2 className="w-5 h-5" />
+              {shareSuccess ? "Copied!" : "Share"}
             </button>
           </div>
         </div>
       </section>
 
-      {/* Content */}
+      {/* ── Content ── */}
       <article className="max-w-4xl mx-auto px-6 -mt-10 relative z-20">
         <div className="bg-white rounded-3xl p-10 md:p-16">
           <div
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
             className="article-body"
           />
         </div>
       </article>
 
-      {/* Related Articles */}
+      {/* ── Related Articles ── */}
       {relatedPosts.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 mt-20">
           <h2 className="text-3xl font-bold text-[#023B37] mb-10">
@@ -348,18 +458,23 @@ export default function BlogPostEach({
                 key={rel.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="group bg-white rounded-3xl overflow-hidden transition-all"
+                className="group bg-white rounded-3xl overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 duration-300"
               >
-                <div className="relative h-52">
+                <div className="relative h-52 overflow-hidden">
                   <Image
                     src={rel.image}
                     alt={rel.title}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
                 <div className="p-8">
+                  <span className="text-xs font-semibold text-[#067F76] mb-2 block">
+                    {rel.category}
+                  </span>
                   <h3 className="font-bold text-lg leading-tight mb-3 group-hover:text-[#067F76] transition-colors line-clamp-2">
                     {rel.title}
                   </h3>
@@ -376,7 +491,7 @@ export default function BlogPostEach({
         </section>
       )}
 
-      {/* JSON-LD Structured Data */}
+      {/* ── JSON-LD Structured Data ── */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -410,6 +525,7 @@ export default function BlogPostEach({
   );
 }
 
+// ── Shimmer Skeleton ──────────────────────────────────────────────────────────
 function ArticleSkeleton() {
   return (
     <div className="bg-[#FAF8F5] min-h-screen pb-20">
@@ -464,7 +580,7 @@ function ArticleSkeleton() {
         <div className="h-5 w-40 rounded-full shimmer" />
       </div>
 
-      <section className="relative h-[70vh] flex items-end overflow-hidden bg-slate-800">
+      <section className="relative h-[70vh] flex items-end overflow-hidden bg-slate-800 mt-6">
         <div className="absolute inset-0 shimmer-dark" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 pb-16 w-full">

@@ -1,0 +1,16 @@
+{
+    "name": "ARIAD Psychological Services",
+    "short_name": "ARIAD",
+    "description": "Expert psychological services in Dallas & Houston — ADHD, autism, neurodiversity.",
+    "start_url": "/",
+    "display": "browser",
+    "background_color": "#FAF8F5",
+    "theme_color": "#023B37",
+    "icons": [
+      {
+        "src": "/favicon.ico",
+        "sizes": "48x48",
+        "type": "image/x-icon"
+      }
+    ]
+  }
