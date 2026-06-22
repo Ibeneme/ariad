@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Quote, HeartPulse, UserPlus, Star } from "lucide-react";
+import { Quote, HeartHandshake, UserPlus, Star } from "lucide-react";
 
 // Define a strict interface for testimonial items
 interface Testimonial {
@@ -14,8 +14,8 @@ interface Testimonial {
   iconAccent: string;
 }
 
-// Define a structure for clinic impact statistics
-interface ClinicStat {
+// Define a structure for impact statistics
+interface Stat {
   icon: React.ReactNode;
   value: string;
   label: string;
@@ -28,20 +28,20 @@ export default function AnimatedTestimonialsSection() {
     {
       id: 1,
       name: "Elizabeth R.",
-      role: "Parent of ADHD Teen",
-      service: "Psychological Testing",
+      role: "Parent",
+      service: "Learning Support",
       feedback:
-        "The diagnostic clarity we received from ARIAD changed everything for our son. We finally have a supportive roadmap for school and home. Highly recommend their professional insights.",
+        "The clarity we received from Ariad changed everything for our son. We finally have a supportive roadmap for school and home. Highly recommend their thoughtful guidance.",
       rating: 5,
       iconAccent: "text-white bg-white/10 border border-white/20",
     },
     {
       id: 2,
       name: "Marcus G.",
-      role: "Software Engineer",
-      service: "Neuropsychological Eval",
+      role: "Professional",
+      service: "Learning Clarity Session",
       feedback:
-        "After my concussion, I was lost. The detailed cognitive assessment helped me understand my executive dysfunction and paved the way for successful rehabilitation.",
+        "After struggling with focus, the detailed understanding helped me see my patterns more clearly and move forward with practical strategies.",
       rating: 5,
       iconAccent: "text-white bg-white/10 border border-white/20",
     },
@@ -49,43 +49,43 @@ export default function AnimatedTestimonialsSection() {
       id: 3,
       name: "Sarah L.",
       role: "Educator & Mom",
-      service: "Psychoeducational Testing",
+      service: "School Support Session",
       feedback:
-        "We always knew she learned differently. This evaluation provided the specific proof we needed to unlock tailored accommodations. The collaborative school approach was invaluable.",
+        "We always knew she learned differently. This process provided the specific insight we needed to unlock better classroom support. The collaborative approach was invaluable.",
       rating: 5,
       iconAccent: "text-white bg-white/10 border border-white/20",
     },
     {
       id: 4,
       name: "David K.",
-      role: "Adult ASD Recipient",
-      service: "Autism Testing",
+      role: "Adult",
+      service: "Personal Clarity Session",
       feedback:
-        "Getting diagnosed as an adult was a profound relief. The compassionate understanding here provided validation I've sought for decades. Next-step guidance was incredibly actionable.",
+        "Gaining clearer understanding as an adult was a profound relief. The compassionate guidance here provided validation and practical next steps I've sought for years.",
       rating: 5,
       iconAccent: "text-white bg-white/10 border border-white/20",
     },
   ];
 
-  const statistics: ClinicStat[] = [
+  const statistics: Stat[] = [
     {
       icon: <Star className="w-5 h-5" />,
       value: "4.9+",
-      label: "Patient Satisfaction",
+      label: "Family Satisfaction",
       iconBg: "bg-white/10 border border-white/10",
       iconText: "text-white",
     },
     {
       icon: <UserPlus className="w-5 h-5" />,
       value: "1,200+",
-      label: "Evaluations Completed",
+      label: "Families Supported",
       iconBg: "bg-white/10 border border-white/10",
       iconText: "text-white",
     },
     {
-      icon: <HeartPulse className="w-5 h-5" />,
+      icon: <HeartHandshake className="w-5 h-5" />,
       value: "98%",
-      label: "Actionable Results",
+      label: "Positive Outcomes",
       iconBg: "bg-white/10 border border-white/10",
       iconText: "text-white",
     },
@@ -131,21 +131,20 @@ export default function AnimatedTestimonialsSection() {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
             <span className="w-1.5 h-1.5 rounded-full bg-[#067F76]" />
             <span className="text-[10px] sm:text-[11px] tracking-[0.25em] uppercase text-white/70 font-extrabold">
-              Patient Voices
+              Family Voices
             </span>
           </div>
 
           <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-            Expert Diagnostics, Compassionate Support. <br />
-            Our Clinical Impact, Evaluated by Our Community.
+            Thoughtful Support, Real Results. <br />
+            Stories from Our Dallas Community.
           </h2>
 
           <div className="w-20 h-1 bg-gradient-to-r from-[#067F76] to-[#D6C1A0] rounded-full pt-1" />
 
           <p className="text-slate-200 text-xs sm:text-sm lg:text-base max-w-2xl font-light pt-2">
-            Providing evidence-based diagnostic protocols and deep therapeutic
-            understanding for children, teens, and adults throughout Dallas,
-            Texas. Discover their stories.
+            Providing compassionate guidance and practical support for families
+            and individuals throughout Dallas, Texas. Hear their stories.
           </p>
         </div>
 
@@ -187,7 +186,7 @@ export default function AnimatedTestimonialsSection() {
                   </p>
                 </div>
 
-                {/* Patient Signature Anchor */}
+                {/* Signature Anchor */}
                 <div className="relative z-10 mt-auto pt-6 border-t border-white/10 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center font-bold text-white text-lg">

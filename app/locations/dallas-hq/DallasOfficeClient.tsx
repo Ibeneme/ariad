@@ -1,19 +1,18 @@
 "use client";
 
 import React from "react";
-import { MapPin, Phone, Mail, ArrowRight, ExternalLink } from "lucide-react";
+import { MapPin, Phone, Mail, ArrowRight } from "lucide-react";
 
 export default function DallasOfficePage() {
   return (
     <main className="bg-[#FAF8F5] text-slate-900 min-h-screen">
       {/* Hero Section */}
       <section className="bg-[#023B37] text-white py-28 lg:py-36 px-6 relative overflow-hidden">
-        {/* Subtle decorative background gradient */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(6,127,118,0.15),transparent_50%)]" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <span className="inline-block py-1 px-3 rounded-md bg-white/10 text-[#67E8D6] text-xs font-mono font-bold tracking-widest uppercase mb-6 border border-white/5">
-            Regional Hub
+            Dallas Clinic
           </span>
           <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-8 max-w-4xl leading-[1.1]">
             Ariad Psychological <br />
@@ -32,20 +31,20 @@ export default function DallasOfficePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-stretch">
           {/* Left: Contact Info */}
-          <div className="lg:col-span-5 bg-white p-8 md:p-10 rounded-3xl border border-stone-200/60 w flex flex-col justify-between">
+          <div className="lg:col-span-5 bg-white p-8 md:p-10 rounded-3xl border border-stone-200/60 flex flex-col justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight mb-2 text-[#023B37]">
                 Visit Our Clinic
               </h2>
               <p className="text-stone-400 text-sm mb-10">
-                Our premier physical testing facility parameters.
+                Our premier physical testing facility in Dallas.
               </p>
 
               <div className="space-y-6">
                 <ContactItem
                   icon={<MapPin className="text-[#067F76] w-5 h-5" />}
                   label="Address"
-                  text="4131 N Central Expy, Suite 900, Dallas, TX 75204"
+                  text="4131 N Central Expy Suite 900, Dallas, TX 75204"
                 />
                 <ContactItem
                   icon={<Phone className="text-[#067F76] w-5 h-5" />}
@@ -59,27 +58,6 @@ export default function DallasOfficePage() {
                   text="info@ariadpsychservices.com"
                   link="mailto:info@ariadpsychservices.com"
                 />
-              </div>
-            </div>
-
-            {/* Also Serving Panel */}
-            <div className="mt-12 p-5 bg-[#FAF8F5] rounded-2xl border border-stone-200/60 group transition-all duration-300 hover:border-[#067F76]/30">
-              <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mb-1.5">
-                Alternative Hub Presence
-              </p>
-              <div className="flex items-center justify-between gap-4">
-                <span className="font-bold text-sm text-[#023B37]">
-                  Tucson Office:{" "}
-                  <span className="font-normal text-stone-600">
-                    (520) 369-7037
-                  </span>
-                </span>
-                <a
-                  href="/locations/tucson"
-                  className="text-[#067F76] text-xs font-bold flex items-center gap-1 transition-colors hover:text-[#023B37] shrink-0"
-                >
-                  View Hub <ExternalLink className="w-3.5 h-3.5" />
-                </a>
               </div>
             </div>
           </div>

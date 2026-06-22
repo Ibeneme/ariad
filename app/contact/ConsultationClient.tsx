@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Send, MapPin, ShieldCheck, Clock, ChevronRight } from "lucide-react";
+import { supabase } from "@/lib/configs/supabase";
 
 export default function ConsultationPage() {
   const [formData, setFormData] = useState({
@@ -12,11 +13,59 @@ export default function ConsultationPage() {
     message: "",
   });
 
-  const locations = ["Dallas", "Tucson", "Houston", "San Antonio"];
+  const [loading, setLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const locations = ["Dallas", "Houston"];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    setLoading(true);
+    setStatusMsg("");
+
+    console.log("--- Form Submission Started ---");
+    console.log("Payload data captured:", formData);
+
+    try {
+      // Direct insertion into your Supabase table (assumed table name: 'inquiries')
+      console.log("Sending query payload to Supabase...");
+      const { data, error } = await supabase
+        .from("inquiries")
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            location: formData.location,
+            message: formData.message,
+          },
+        ])
+ 
+
+      if (error) {
+        console.error("Supabase Error encountered:", error.message);
+        console.error("Full error object:", error);
+        throw error;
+      }
+
+      console.log("Supabase insertion successful! Returned data:", data);
+      setStatusMsg("Inquiry submitted successfully!");
+
+      // Clear form upon success
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        location: "",
+        message: "",
+      });
+    } catch (err: any) {
+      console.error("Catch block captured an unexpected error:", err);
+      setStatusMsg(`Submission failed: ${err.message || "Unknown error"}`);
+    } finally {
+      setLoading(false);
+      console.log("--- Form Submission Lifecycle Finished ---");
+    }
   };
 
   return (
@@ -79,10 +128,10 @@ export default function ConsultationPage() {
                     <MapPin className="w-5 h-5 text-[#67E8D6] shrink-0" />
                     <div>
                       <p className="text-xs font-bold uppercase text-white">
-                        Multi-State Reach
+                        Our Locations
                       </p>
                       <p className="text-xs text-stone-400">
-                        Serving clients across Texas & Arizona hubs
+                        Serving clients in Dallas and Houston, Texas
                       </p>
                     </div>
                   </div>
@@ -181,11 +230,25 @@ export default function ConsultationPage() {
                   />
                 </div>
 
+                {statusMsg && (
+                  <p
+                    className={`text-sm font-semibold ${
+                      statusMsg.includes("successfully")
+                        ? "text-emerald-600"
+                        : "text-rose-600"
+                    }`}
+                  >
+                    {statusMsg}
+                  </p>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 bg-[#067F76] hover:bg-[#056b63] text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl mt-4"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 bg-[#067F76] hover:bg-[#056b63] disabled:bg-stone-400 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl mt-4"
                 >
-                  Send Secure Inquiry <Send className="w-4 h-4" />
+                  {loading ? "Sending securely..." : "Send Secure Inquiry"}{" "}
+                  <Send className="w-4 h-4" />
                 </button>
               </form>
             </div>

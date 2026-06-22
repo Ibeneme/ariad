@@ -95,7 +95,7 @@ export default function WhyChooseUsSection() {
               return (
                 <motion.div
                   key={item.id}
-                  className="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-sm"
+                  className="border border-slate-200/80 rounded-2xl overflow-hidden bg-white "
                   initial={false}
                 >
                   <button

@@ -14,7 +14,6 @@ import phase2 from "../../assests/images/phase2.png";
 import phase3 from "../../assests/images/phase3.png";
 
 export default function PhilosophicalThread() {
-  // Shared structural viewport constraint config
   const scrollTriggerConfig = { once: true, margin: "-100px" };
 
   return (
@@ -65,22 +64,20 @@ export default function PhilosophicalThread() {
           </div>
           <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#023B37] tracking-tight leading-tight">
             Ariad's Thread: <br />
-            <span className="text-[#067F76]">Navigating out of the Maze</span>
+            <span className="text-[#067F76]">Navigating Life's Maze</span>
           </h2>
           <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed pt-2 sm:pt-4 font-normal max-w-2xl mx-auto">
-            In deep classical mythology, the golden thread given to Theseus
-            guided him out of a terrifying, impossible labyrinth. We see
-            clinical mental healthcare much like that guiding thread. When you
-            feel lost in a labyrinth of stress, exhaustion, depression, or
-            confusion, our medical practitioners hand you a thread of
-            compassionate, evidence-based science to help you navigate back into
-            the light.
+            In classical mythology, the golden thread given to Theseus guided
+            him safely out of the labyrinth. We believe understanding and
+            support work the same way — a gentle, steady thread that helps
+            families and individuals find clarity and move forward through
+            life's challenges.
           </p>
         </motion.div>
 
         {/* --- CUSTOM ASYMMETRIC MASONRY / BENTO GRID --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 auto-rows-auto lg:auto-rows-[220px]">
-          {/* CARD 1: Deep Diagnostics (SLIDE IN FROM LEFT) */}
+          {/* CARD 1: Deep Understanding */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -101,17 +98,17 @@ export default function PhilosophicalThread() {
 
             <div className="space-y-3 sm:space-y-4 relative z-10 max-w-xl">
               <h3 className="font-extrabold text-xl sm:text-2xl lg:text-3xl tracking-tight">
-                1. Deep Diagnostics
+                1. Deep Understanding
               </h3>
               <p className="text-xs sm:text-sm lg:text-base text-slate-200/90 leading-relaxed font-light">
-                We take an entire hour to analyze your childhood developmental
-                histories, family cycles, physiological metrics, sleep paths,
-                and direct personal observations.
+                We take time to truly listen — exploring your story,
+                experiences, daily life, and what matters most to you or your
+                child.
               </p>
             </div>
           </motion.div>
 
-          {/* CARD 2: Visual Concept Image for Diagnostics (SLIDE IN FROM RIGHT) */}
+          {/* CARD 2: Visual Concept Image for Understanding */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -121,7 +118,7 @@ export default function PhilosophicalThread() {
           >
             <Image
               src={phase1}
-              alt="Deep Diagnostic Analysis and Clinical Brain metrics"
+              alt="Deep listening and understanding process"
               fill
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               sizes="(max-w-1024px) 100vw, 40vw"
@@ -129,7 +126,7 @@ export default function PhilosophicalThread() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#023B37]/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
             <div className="absolute bottom-6 left-6 right-6 sm:bottom-8 sm:left-8 sm:right-8 flex justify-between items-center text-white">
               <span className="text-[10px] sm:text-xs uppercase tracking-widest font-semibold backdrop-blur-md bg-black/20 px-3 py-1 rounded-full border border-white/10">
-                Evidence-Based Metrics
+                Thoughtful Exploration
               </span>
               <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
                 <ArrowUpRight className="w-4 h-4" />
@@ -137,7 +134,7 @@ export default function PhilosophicalThread() {
             </div>
           </motion.div>
 
-          {/* CARD 3: Visual Concept Image for Medical Precision (SLIDE IN FROM LEFT) */}
+          {/* CARD 3: Visual Concept Image for Guidance */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -147,7 +144,7 @@ export default function PhilosophicalThread() {
           >
             <Image
               src={phase2}
-              alt="Medical precision and conservative pharmacotherapy administration"
+              alt="Thoughtful guidance and support process"
               fill
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               sizes="(max-w-1024px) 100vw, 40vw"
@@ -155,7 +152,7 @@ export default function PhilosophicalThread() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#8C6D53]/80 via-transparent to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-500" />
             <div className="absolute bottom-6 left-6 right-6 sm:bottom-8 sm:left-8 sm:right-8 flex justify-between items-center text-white">
               <span className="text-[10px] sm:text-xs uppercase tracking-widest font-semibold backdrop-blur-md bg-black/20 px-3 py-1 rounded-full border border-white/10">
-                Conservative Safety Protocol
+                Personalized Guidance
               </span>
               <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
                 <ArrowUpRight className="w-4 h-4" />
@@ -163,7 +160,7 @@ export default function PhilosophicalThread() {
             </div>
           </motion.div>
 
-          {/* CARD 4: Medical Precision (SLIDE IN FROM RIGHT) */}
+          {/* CARD 4: Thoughtful Guidance */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -184,17 +181,17 @@ export default function PhilosophicalThread() {
 
             <div className="space-y-3 sm:space-y-4 relative z-10 max-w-xl">
               <h3 className="font-extrabold text-xl sm:text-2xl lg:text-3xl tracking-tight">
-                2. Medical Precision
+                2. Thoughtful Guidance
               </h3>
               <p className="text-xs sm:text-sm lg:text-base text-amber-50/90 leading-relaxed font-light">
-                When pharmacotherapy is indicated, our practitioner believes in
-                conservative dosing, minimizing medications, and scheduling
-                frequent reviews for absolute drug safety and efficacy.
+                We move at a careful, respectful pace — offering clear
+                strategies and practical tools while always listening to your
+                needs and preferences.
               </p>
             </div>
           </motion.div>
 
-          {/* CARD 5: Empathetic Partnership (SLIDE IN FROM BOTTOM) */}
+          {/* CARD 5: Empathetic Partnership */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -208,16 +205,16 @@ export default function PhilosophicalThread() {
               </div>
               <div className="space-y-1.5 sm:space-y-3">
                 <span className="text-[10px] sm:text-xs tracking-widest font-mono text-[#D6C1A0] block">
-                  PHASE_03 &bull; CLINICAL ALLIANCE
+                  PHASE_03 &bull; PARTNERSHIP
                 </span>
                 <h3 className="font-extrabold text-xl sm:text-3xl lg:text-4xl tracking-tight">
                   3. Empathetic Partnership
                 </h3>
               </div>
               <p className="text-xs sm:text-sm lg:text-base text-slate-100 leading-relaxed font-light">
-                We do not implement medication regimens by clinical decree. We
-                talk, discuss, outline benefits, hear fears, address side
-                effects, and coordinate closely as equals in care.
+                We walk alongside you as true partners — listening deeply,
+                respecting your values, and working together to create a path
+                that feels right for your family.
               </p>
             </div>
 
@@ -225,7 +222,7 @@ export default function PhilosophicalThread() {
             <div className="w-full lg:w-[40%] h-48 sm:h-64 lg:h-full relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-inner group-hover:scale-[1.01] transition-transform duration-500 flex-shrink-0">
               <Image
                 src={phase3}
-                alt="Empathetic patient practitioner collaboration environment"
+                alt="Supportive partnership and collaboration"
                 fill
                 className="object-cover"
                 sizes="(max-w-1024px) 100vw, 30vw"

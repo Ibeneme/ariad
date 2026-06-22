@@ -112,42 +112,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Location 2: Tucson */}
-          <div className="md:col-span-5 space-y-3.5">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-[#D6C1A0] flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#067F76]" />
-              Tucson Clinic
-            </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm font-light text-slate-300">
-              <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-[#067F76] shrink-0 mt-0.5" />
-                <span>
-                  5055 E Broadway Blvd Suite C215,
-                  <br />
-                  Tucson, AZ 85711
-                </span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[#067F76] shrink-0" />
-                <a
-                  href="tel:5203697037"
-                  className="hover:text-white transition-colors duration-200"
-                >
-                  (520) 369-7037
-                </a>
-              </li>
-              <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#067F76] shrink-0" />
-                <a
-                  href="mailto:admin@ariadpsychservices.com"
-                  className="hover:text-white transition-colors duration-200 break-all"
-                >
-                  admin@ariadpsychservices.com
-                </a>
-              </li>
-            </ul>
-          </div>
-
           {/* Social Network Tracks */}
           <div className="md:col-span-3 space-y-3.5">
             <h4 className="text-xs font-bold uppercase tracking-widest text-[#D6C1A0]">

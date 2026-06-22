@@ -21,23 +21,23 @@ export default function ScheduleSection() {
   const steps: Step[] = [
     {
       num: "01",
-      title: "Initial Intake Consultation",
+      title: "Initial Conversation",
       description:
-        "Connect with our intake specialists to align your clinical goals, academic needs, or physician referrals.",
+        "Connect with our team to share your goals and needs. We’ll discuss how we can best support you or your child.",
       icon: <PhoneCall className="w-4 h-4 text-[#067F76]" />,
     },
     {
       num: "02",
-      title: "Diagnostic Assessment",
+      title: "Support Session",
       description:
-        "Complete your structured evaluation session using evidence-based parameters in a supportive setting.",
+        "Join a thoughtful, structured session in a calm and supportive environment.",
       icon: <Clipboard className="w-4 h-4 text-[#8C6D53]" />,
     },
     {
       num: "03",
-      title: "Comprehensive Results",
+      title: "Clear Next Steps",
       description:
-        "Review your detailed diagnostic profile and actionable accommodation roadmaps with our experts.",
+        "Review your personalized summary and practical strategies together with our team.",
       icon: <CheckCircle className="w-4 h-4 text-[#067F76]" />,
     },
   ];
@@ -53,7 +53,6 @@ export default function ScheduleSection() {
     visible: {
       opacity: 1,
       x: 0,
-      // Add 'as const' or explicit typing to satisfy the strict Easing check
       transition: { duration: 0.7, ease: "easeOut" as const },
     },
   };
@@ -102,12 +101,12 @@ export default function ScheduleSection() {
                 </span>
               </div>
               <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                Ready to Gain Ultimate Clarity? <br /> Schedule Your Assessment
+                Ready to Gain Clearer Insight? <br /> Schedule Your Session
                 Today.
               </h2>
               <p className="text-slate-300 text-xs sm:text-sm font-light leading-relaxed max-w-xl">
-                Partner with ARIAD Psychological Services for expert diagnostic
-                profiles and targeted clinical support.
+                Partner with Ariad Support Services for thoughtful guidance and
+                practical next steps.
               </p>
             </div>
             <div className="shrink-0 self-start lg:self-center">
@@ -116,7 +115,7 @@ export default function ScheduleSection() {
                 className="inline-flex items-center gap-3 px-8 py-4 bg-white hover:bg-[#D6C1A0] text-[#023B37] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all duration-300 active:scale-95 group"
               >
                 <CalendarCheck2 className="w-4 h-4" />
-                <span>Book Intake Evaluation</span>
+                <span>Book Your Session</span>
                 <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </a>
             </div>
@@ -132,7 +131,6 @@ export default function ScheduleSection() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    {/* Blinker applied to the icon container */}
                     <motion.div
                       {...blinker}
                       className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0"

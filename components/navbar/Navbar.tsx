@@ -1,9 +1,8 @@
 "use client";
-
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation"; // Added to detect active routing architectures
+import { usePathname } from "next/navigation";
 import logo from "../../assests/images/logo_a.png";
 
 interface SubLink {
@@ -26,7 +25,6 @@ export default function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
-  // Fetch current pathname from Next.js client router
   const pathname = usePathname();
 
   // Prevent body scroll when mobile menu is open
@@ -64,7 +62,7 @@ export default function Navbar() {
     { name: "About Us", href: "/about", hasDropdown: false },
     {
       name: "Services",
-      href: "/services", // Fallback base path for routing scanner logic
+      href: "/services",
       hasDropdown: true,
       dropdownItems: [
         {
@@ -211,34 +209,7 @@ export default function Navbar() {
         },
       ],
     },
-    {
-      name: "Blog",
-      href: "/blog",
-      hasDropdown: true,
-      dropdownItems: [
-        {
-          title: "Mental Health Insights",
-          description:
-            "Articles written by our staff touching on dynamic modern therapy.",
-          href: "/blog/insights",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-              />
-            </svg>
-          ),
-        },
-      ],
-    },
+    { name: "Blog", href: "/blog", hasDropdown: false },
     {
       name: "Locations",
       href: "/locations",
@@ -274,7 +245,6 @@ export default function Navbar() {
     },
   ];
 
-  // Logic: Evaluates true if current route strictly matches base or resides in dropdown tree
   const isItemActive = (item: NavItem) => {
     if (pathname === item.href) return true;
     if (item.hasDropdown && item.dropdownItems) {
@@ -292,12 +262,16 @@ export default function Navbar() {
     }
   };
 
+  // NEW LOGIC: Dark green background on all pages except home (/)
+  const isHome = pathname === "/";
+  const shouldHaveSolidBg = !isHome || isScrolled || isOpen;
+
   return (
     <nav
       ref={navRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled || isOpen
-          ? "bg-[#023B37]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl"
+        shouldHaveSolidBg
+          ? "bg-[#023B37] backdrop-blur-xl border-b border-white/10 shadow-2xl"
           : "bg-gradient-to-b from-[#023B37]/40 to-transparent"
       }`}
     >
@@ -437,7 +411,6 @@ export default function Navbar() {
             >
               Consultation
             </Link>
-
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="md:hidden p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 border border-white/10 transition-all"
@@ -475,7 +448,7 @@ export default function Navbar() {
             className="fixed inset-0 top-20 bg-slate-950/60 backdrop-blur-md z-40 md:hidden"
             onClick={() => setIsOpen(false)}
           />
-          <div className="md:hidden absolute top-20 left-0 right-0 bg-[#023B37]/95 border-b border-white/10 max-h-[calc(100vh-80px)] overflow-y-auto z-50">
+          <div className="md:hidden absolute top-20 left-0 right-0 bg-[#023B37] border-b border-white/10 max-h-[calc(100vh-80px)] overflow-y-auto z-50">
             <div className="px-4 pt-4 pb-8 space-y-3">
               {navigationData.map((item) => {
                 const active = isItemActive(item);
