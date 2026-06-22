@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = post.meta_description || post.excerpt;
   const imageUrl = post.og_image_url || post.image_url;
   const canonical =
-    post.canonical_url || `https://ariadpsychservices.com/blog/${slug}`;
+    post.canonical_url || `https://ariad-nine.vercel.app/blog/${slug}`;
 
   return {
     title,
@@ -73,18 +73,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { slug } = await params;
-
-  // Optional: Pre-fetch on server for better performance (passed to client)
-  const { data: initialPost } = await supabase
-    .from("articles")
-    .select("*")
-    .eq("slug", slug)
-    .single();
-
-  if (!initialPost) {
-    notFound();
+    const { slug } = await params;
+  
+    const { data: initialPost, error } = await supabase
+      .from("articles")
+      .select("*")
+      .eq("slug", slug)
+      .single();
+  
+    if (error) console.error("Supabase Error:", error);
+    if (!initialPost) {
+      console.log("No post found for slug:", slug);
+      notFound();
+    }
+  
+    return <BlogPostEach slug={slug} initialPost={initialPost} />;
   }
-
-  return <BlogPostEach slug={slug} initialPost={initialPost} />;
-}

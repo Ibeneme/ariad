@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Calendar, Clock, User, ArrowRight } from "lucide-react";
+import { Calendar, Clock, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/configs/supabase";
 
 const heroBg =

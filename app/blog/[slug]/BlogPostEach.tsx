@@ -396,12 +396,12 @@ export default function BlogPostEach({
               name: "ARIAD Psychological Services",
               logo: {
                 "@type": "ImageObject",
-                url: "https://ariadpsychservices.com/logo.png",
+                url: "https://ariad-nine.vercel.app/logo.png",
               },
             },
             mainEntityOfPage: {
               "@type": "WebPage",
-              "@id": `https://ariadpsychservices.com/blog/${post.slug}`,
+              "@id": `https://ariad-nine.vercel.app/blog/${post.slug}`,
             },
           }),
         }}
