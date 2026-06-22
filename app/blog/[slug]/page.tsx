@@ -1,18 +1,27 @@
 // app/blog/[slug]/page.tsx
+//
+// DROP THIS FILE INTO:  app/blog/[slug]/page.tsx
+// Make sure the folder is literally named [slug] with square brackets.
+
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/configs/supabase";
-
 import BlogPostEach from "./BlogPostEach";
+
+// Force every request to be server-rendered (SSR).
+// This avoids the generateStaticParams trap where an empty slug list
+// causes 404 for all dynamic routes on Vercel.
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
+// ── Dynamic SEO metadata ──────────────────────────────────────────────────────
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
-  const { data: post } = await supabase
+  const { data: post, error } = await supabase
     .from("articles")
     .select(
       "title, excerpt, meta_title, meta_description, og_image_url, image_url, canonical_url, category"
@@ -20,9 +29,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq("slug", slug)
     .single();
 
-  if (!post) {
+  if (error || !post) {
     return {
       title: "Article Not Found | ARIAD Psychological Services",
+      robots: { index: false, follow: false },
     };
   }
 
@@ -43,6 +53,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: canonical,
       type: "article",
+      siteName: "ARIAD Psychological Services",
+      locale: "en_US",
       images: imageUrl
         ? [
             {
@@ -53,8 +65,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             },
           ]
         : undefined,
-      siteName: "ARIAD Psychological Services",
-      locale: "en_US",
     },
     twitter: {
       card: "summary_large_image",
@@ -68,24 +78,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "therapy",
       post.category?.toLowerCase(),
       "ARIAD Psychological Services",
-    ].filter(Boolean),
+    ].filter(Boolean) as string[],
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-snippet": -1,
+        "max-image-preview": "large",
+        "max-video-preview": -1,
+      },
+    },
   };
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default async function BlogPostPage({ params }: Props) {
-    const { slug } = await params;
-  
-    const { data: initialPost, error } = await supabase
-      .from("articles")
-      .select("*")
-      .eq("slug", slug)
-      .single();
-  
-    if (error) console.error("Supabase Error:", error);
-    if (!initialPost) {
-      console.log("No post found for slug:", slug);
-      notFound();
-    }
-  
-    return <BlogPostEach slug={slug} initialPost={initialPost} />;
+  const { slug } = await params;
+
+  const { data: initialPost, error } = await supabase
+    .from("articles")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  // Log on the server so you can see this in Vercel's function logs
+  // if articles are unexpectedly missing.
+  if (error) {
+    console.error(`[BlogPostPage] Supabase error for slug "${slug}":`, error);
   }
+
+  if (!initialPost) {
+    notFound();
+  }
+
+  return <BlogPostEach slug={slug} initialPost={initialPost} />;
+}
