@@ -1,6 +1,7 @@
 "use client";
 
 // app/blog/[slug]/BlogPostEach.tsx
+export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
@@ -438,7 +439,7 @@ export default function BlogPostEach({
 
       {/* ── Content ── */}
       <article className="max-w-4xl mx-auto px-6 -mt-10 relative z-20">
-        <div className="bg-white rounded-3xl p-10 md:p-16">
+        <div className="bg-white rounded-3xl p-6 md:p-16">
           <div
             dangerouslySetInnerHTML={{ __html: sanitizedContent }}
             className="article-body"
