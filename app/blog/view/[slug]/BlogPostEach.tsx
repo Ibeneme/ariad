@@ -392,7 +392,7 @@ export default function BlogPostEach({
       </div>
 
       {/* ── Hero ── */}
-      <section className="relative h-[70vh] flex items-end mt-6">
+      <section className="relative h-[70vh] flex items-end mt-5">
         <Image
           src={post.image}
           alt={post.title}
