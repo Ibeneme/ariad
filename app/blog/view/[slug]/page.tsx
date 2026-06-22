@@ -17,6 +17,9 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
+
+  console.warn(slug, 'slugslug')
+  
   const { data: post, error } = await supabase
     .from("articles")
     .select(
