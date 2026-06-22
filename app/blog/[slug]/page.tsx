@@ -1,20 +1,19 @@
 // app/blog/[slug]/page.tsx
-//
-// DROP THIS FILE INTO:  app/blog/[slug]/page.tsx
-// Make sure the folder is literally named [slug] with square brackets.
-export const dynamic = "force-dynamic";
 
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/configs/supabase";
 import BlogPostEach from "./BlogPostEach";
 
+// Forces SSR on every request — required when slugs come from a database.
+// Without this, Next.js tries to statically pre-render and 404s anything
+// it didn't know about at build time.
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-// ── Dynamic SEO metadata ──────────────────────────────────────────────────────
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
@@ -37,14 +36,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = post.meta_description || post.excerpt;
   const imageUrl = post.og_image_url || post.image_url;
   const canonical =
-    post.canonical_url || `https://ariad-nine.vercel.app/blog/${slug}`;
+    post.canonical_url || `https://ariadpsychservices.com/blog/${slug}`;
 
   return {
     title,
     description,
-    alternates: {
-      canonical,
-    },
+    alternates: { canonical },
     openGraph: {
       title,
       description,
@@ -53,14 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "ARIAD Psychological Services",
       locale: "en_US",
       images: imageUrl
-        ? [
-            {
-              url: imageUrl,
-              width: 1200,
-              height: 630,
-              alt: post.title,
-            },
-          ]
+        ? [{ url: imageUrl, width: 1200, height: 630, alt: post.title }]
         : undefined,
     },
     twitter: {
@@ -90,7 +80,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
 
@@ -100,8 +89,6 @@ export default async function BlogPostPage({ params }: Props) {
     .eq("slug", slug)
     .single();
 
-  // Log on the server so you can see this in Vercel's function logs
-  // if articles are unexpectedly missing.
   if (error) {
     console.error(`[BlogPostPage] Supabase error for slug "${slug}":`, error);
   }
