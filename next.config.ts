@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   // /blog/[slug] in production. Next.js static export pre-renders only pages
   // known at build time; Supabase-backed slugs don't exist yet, so they 404.
   // Vercel handles SSR natively — no output setting needed.
- 
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
