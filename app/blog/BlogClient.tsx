@@ -166,7 +166,7 @@ export default function BlogClient() {
                     {post.excerpt}
                   </p>
                   <Link
-                    href={`/blog/${post.slug}`}
+                    href={`/blog/view/${post.slug}`}
                     className="text-[#067F76] font-medium flex items-center gap-1 hover:gap-2 transition-all"
                   >
                     Read More <ArrowRight className="w-4 h-4" />

@@ -143,7 +143,7 @@ export default function BlogDashboardClient() {
                     onEdit={() => router.push(`/admin/blog/edit/${post?.id}`)}
                     onDelete={() => handleDeleteClick(post)}
                     onView={() =>
-                      router.push(`/blog/${post?.slug || post?.id}`)
+                      router.push(`/blog/view/${post?.slug || post?.id}`)
                     }
                   />
                 )
