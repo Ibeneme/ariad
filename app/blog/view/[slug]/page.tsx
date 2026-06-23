@@ -8,17 +8,10 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-// Optional: Pre-render known slugs at build time (highly recommended)
 export async function generateStaticParams() {
-  const { data: posts } = await supabase
-    .from("articles")
-    .select("slug")
-    .eq("published", true) // add any filters you use
-    .limit(100); // adjust as needed
-
-  return (posts || []).map((post) => ({
-    slug: post.slug,
-  }));
+  const { data: posts, error } = await supabase.from("articles").select("slug");
+  if (error) console.error("Build-time fetch error:", error);
+  return (posts || []).map((post) => ({ slug: post.slug }));
 }
 
 // Keep dynamic for new/updated posts
