@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import {
   Calendar,
   Clock,
@@ -14,6 +13,7 @@ import {
   Search,
 } from "lucide-react";
 import Image from "next/image";
+import { supabase } from "@/lib/configs/supabase";
 
 type BlogPost = {
   id: string;
@@ -35,7 +35,7 @@ export default function BlogDashboardClient() {
   const [postToDelete, setPostToDelete] = useState<BlogPost | null>(null);
 
   const router = useRouter();
-  const supabase = createClient();
+
 
   // Filter logic
   const filteredPosts = useMemo(() => {
