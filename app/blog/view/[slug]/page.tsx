@@ -18,7 +18,7 @@ export async function generateStaticParams() {
 }
 
 export const dynamicParams = true;
-export const revalidate = 0; // Disable ISR for now during debugging
+export const revalidate = 1; // Disable ISR for now during debugging
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
