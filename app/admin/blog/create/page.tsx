@@ -633,10 +633,10 @@ export default function CreateArticlePage() {
       if (insertError) throw insertError;
 
       setSuccess("Article published successfully!");
-      router.refresh(); 
-
-      // 2. Then navigate
-      router.push("/admin/dashboard");
+      setTimeout(() => {
+        router.push("/admin/dashboard");
+        router.refresh();
+      }, 1200);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to create article");
