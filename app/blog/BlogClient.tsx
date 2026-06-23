@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
-import { supabase } from "@/lib/configs/supabase";
+import { createClient } from "@/lib/supabase/client"; // Updated import
 import { useRouter } from "next/navigation";
 
 const heroBg =
@@ -49,7 +49,7 @@ export default function BlogClient() {
   const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
   const [loadingSupabase, setLoadingSupabase] = useState(true);
   const router = useRouter();
-  
+  const supabase = createClient()
   const fetchSupabaseArticles = async () => {
     try {
       console.log("🔄 [BlogClient] Starting fetchSupabaseArticles...");

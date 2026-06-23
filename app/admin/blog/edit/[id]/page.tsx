@@ -31,7 +31,7 @@ import {
   Highlighter,
 } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/configs/supabase";
+import { createClient } from "@/lib/supabase/client"; // Updated import
 
 export default function EditArticlePage({
   params,
@@ -39,7 +39,7 @@ export default function EditArticlePage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
-
+  const supabase = createClient()
   const [id, setId] = useState<string>("");
   const [formData, setFormData] = useState({
     title: "",
