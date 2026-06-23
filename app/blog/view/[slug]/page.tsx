@@ -33,7 +33,7 @@ export async function generateStaticParams() {
   return (posts || []).map((post) => ({ slug: post.slug }));
 }
 
-export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 export const revalidate = 30; // ISR: revalidate every hour
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
