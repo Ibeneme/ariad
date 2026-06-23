@@ -11,7 +11,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import blogData from "../data/blogPosts.json";
+// import blogData from "../data/blogPosts.json";
 import { supabase } from "@/lib/configs/supabase";
 
 
@@ -115,7 +115,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
 );
 
 export default function BlessingAttorneyBlog() {
-  const { featuredArticle, practiceAreas } = blogData;
+  //const { featuredArticle, practiceAreas } = blogData;
   const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
   const [loadingSupabase, setLoadingSupabase] = useState(true);
   const [deletingId, setDeletingId] = useState<number | string | null>(null);
@@ -218,18 +218,7 @@ export default function BlessingAttorneyBlog() {
       {/* Hero */}
       <div className="bg-[#4F2A7E] pt-56 text-white py-32 relative overflow-hidden">
         <div className="px-8 md:px-16 max-w-5xl">
-          <span className="inline-block px-4 py-2 bg-[#D4AF3725] text-[#D4AF37] text-sm font-bold tracking-[0.125em] rounded-3xl mb-8">
-            {featuredArticle.tag}
-          </span>
-
-          <h2 className="text-6xl md:text-7xl font-bold leading-[1.05] tracking-tighter max-w-4xl">
-            {featuredArticle.title}
-          </h2>
-
-          <p className="mt-8 text-xl text-white/80 max-w-2xl">
-            {featuredArticle.excerpt}
-          </p>
-
+        
           <Link
             href="/blog/create"
             className="mt-10 inline-flex items-center gap-4 bg-white text-[#4F2A7E] px-7 py-4 rounded-full pr-3 font-bold text-lg hover:opacity-90 transition-all"
@@ -337,14 +326,7 @@ export default function BlessingAttorneyBlog() {
                 Practice Areas
               </h4>
               <div className="flex flex-wrap gap-3">
-                {practiceAreas.map((area) => (
-                  <div
-                    key={area}
-                    className="bg-gray-50 hover:bg-[#D4AF37] hover:text-white px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 font-medium text-sm whitespace-nowrap"
-                  >
-                    {area}
-                  </div>
-                ))}
+             
               </div>
             </div>
           </aside>
