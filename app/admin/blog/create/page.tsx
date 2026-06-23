@@ -633,6 +633,9 @@ export default function CreateArticlePage() {
       if (insertError) throw insertError;
 
       setSuccess("Article published successfully!");
+      router.refresh(); 
+
+      // 2. Then navigate
       router.push("/admin/dashboard");
     } catch (err: any) {
       console.error(err);
