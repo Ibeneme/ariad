@@ -1,13 +1,7 @@
 import BlogPostEach from "./BlogPostEach";
 import { supabase } from "@/lib/configs/supabase";
 
-export const dynamic = "force-dynamic"; // or remove if you want static
-
-// Optional: pre-generate known slugs at build time
-export async function generateStaticParams() {
-  const { data } = await supabase.from("articles").select("slug");
-  return data?.map((post) => ({ slug: post.slug })) || [];
-}
+export const dynamic = "force-dynamic";
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -19,7 +13,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     .single();
 
   if (error || !initialPost) {
-    // handle 404
     return <div>Article not found</div>;
   }
 
