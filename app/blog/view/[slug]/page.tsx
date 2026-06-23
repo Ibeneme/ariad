@@ -34,7 +34,7 @@ export async function generateStaticParams() {
 }
 
 export const dynamicParams = true;
-export const revalidate = 30; // ISR: revalidate every hour
+export const revalidate = 3; // ISR: revalidate every hour
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug: rawSlug } = await params;
