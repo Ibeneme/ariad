@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/configs/supabase";
+
 
 export default function AdminGuard({
   children,
@@ -14,7 +15,7 @@ export default function AdminGuard({
 
   const router = useRouter();
   const pathname = usePathname();
-  const supabase = createClient();
+
 
   useEffect(() => {
     // Skip guard for login page
