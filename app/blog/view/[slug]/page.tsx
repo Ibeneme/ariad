@@ -14,9 +14,7 @@ export async function generateStaticParams() {
   return (posts || []).map((post) => ({ slug: post.slug }));
 }
 
-// Keep dynamic for new/updated posts
 export const dynamicParams = true; // default, but explicit is good
-// export const dynamic = "force-dynamic"; // only use if you want ZERO static rendering
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
