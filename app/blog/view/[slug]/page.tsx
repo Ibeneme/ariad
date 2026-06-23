@@ -1,5 +1,6 @@
 
-export const dynamic = "force-dynamic"; // or remove if you want static
+export const dynamic = "force-dynamic"; 
+// or remove if you want static
 
 export default async function Page({
   params,
@@ -12,3 +13,5 @@ export default async function Page({
 
   return <>{slug}</>;
 }
+
+
