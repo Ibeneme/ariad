@@ -9,8 +9,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, User, ArrowLeft, Share2 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
-
-import { supabase } from "@/lib/configs/supabase";
+import { createClient } from "@/lib/supabase/client"; // Updated import
 
 const heroBgFallback =
   "https://images.unsplash.com/photo-1600427652630-f97cc4db10cd?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
@@ -37,6 +36,7 @@ interface BlogPostClientProps {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatArticle(data: any): BlogPost {
+  
   const words = data.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
   const computedReadTime = Math.max(1, Math.ceil(words / 200)) + " min read";
   const formattedDate = data.created_at
@@ -92,6 +92,7 @@ export default function BlogPostEach({
     // Hydrate immediately from the server-fetched data — no loading flash.
     initialPost ? formatArticle(initialPost) : null
   );
+  const supabase = createClient()
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   // Only show skeleton when there is genuinely no data yet.
   const [loading, setLoading] = useState(!initialPost);

@@ -1,76 +1,42 @@
+// app/blog/[slug]/page.tsx
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-
-import { supabase } from "@/lib/configs/supabase";
+import { createClient } from "@/lib/supabase/server"; // Updated import
 import BlogPostEach from "./BlogPostEach";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateStaticParams() {
-  const { data: posts } = await supabase
-    .from("articles")
-    .select("slug")
-    .limit(100); // safety limit
-
-  return (posts || []).map((post: any) => ({ slug: post.slug }));
-}
-
-export const dynamicParams = true;
-export const revalidate = 1; // Disable ISR for now during debugging
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const supabase = await createClient(); // Use the server client
 
   const { data: post } = await supabase
     .from("articles")
-    .select(
-      "title, excerpt, meta_title, meta_description, og_image_url, image_url, canonical_url, category"
-    )
+    .select("*")
     .eq("slug", slug)
-    .maybeSingle(); // ← Changed from .single()
+    .maybeSingle();
 
-  if (!post) {
-    return {
-      title: "Article Not Found | ARIAD Psychological Services",
-      robots: { index: false },
-    };
-  }
-
-  const title = post.meta_title || post.title;
-  const description = post.meta_description || post.excerpt;
-  const imageUrl = post.og_image_url || post.image_url;
+  if (!post) return { title: "Article Not Found" };
 
   return {
-    title,
-    description,
-    alternates: {
-      canonical:
-        post.canonical_url || `https://ariadpsychservices.com/blog/${slug}`,
-    },
-    openGraph: {
-      title,
-      description,
-      images: imageUrl ? [{ url: imageUrl }] : undefined,
-    },
+    title: post.meta_title || post.title,
+    description: post.meta_description || post.excerpt,
   };
 }
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
+  const supabase = await createClient(); // Use the server client
 
   const { data: initialPost, error } = await supabase
     .from("articles")
     .select("*")
     .eq("slug", slug)
-    .maybeSingle(); // ← Changed from .single()
+    .maybeSingle();
 
-  if (error) {
-    console.error("Supabase error:", error);
-  }
-
-  if (!initialPost) {
+  if (error || !initialPost) {
     notFound();
   }
 
