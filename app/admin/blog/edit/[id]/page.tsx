@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -31,8 +32,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-
-export const dynamic = "force-dynamic";
 
 export default function EditArticlePage({
   params,
