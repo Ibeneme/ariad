@@ -7,6 +7,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/configs/supabase";
+import { useRouter } from "next/navigation";
 
 const heroBg =
   "https://images.unsplash.com/photo-1600427652630-f97cc4db10cd?q=80&w=2070&auto=format&fit=crop";
@@ -47,21 +48,35 @@ interface BlogPost {
 export default function BlogClient() {
   const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
   const [loadingSupabase, setLoadingSupabase] = useState(true);
-
+  const router = useRouter();
+  
   const fetchSupabaseArticles = async () => {
     try {
+      console.log("🔄 [BlogClient] Starting fetchSupabaseArticles...");
+      router.refresh()
       setLoadingSupabase(true);
+  
       const { data, error } = await supabase
         .from("articles")
         .select("*")
         .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      if (data) {
-        const formattedSupabasePosts: BlogPost[] = data.map((article: any) => {
+  
+      console.log("📊 [BlogClient] Supabase response received:");
+      console.log("   • Error:", error);
+      console.log("   • Data count:", data?.length || 0);
+      console.log("   • Raw data:", data);
+  
+      if (error) {
+        console.error("❌ [BlogClient] Supabase Error:", error);
+        throw error;
+      }
+  
+      if (data && data.length > 0) {
+        const formattedSupabasePosts: BlogPost[] = data.map((article: any, index: number) => {
           const words =
             article.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
-          return {
+  
+          const formatted = {
             id: article.id,
             slug: article.slug,
             title: article.title,
@@ -76,17 +91,33 @@ export default function BlogClient() {
             image: article.image_url || heroBg,
             author: article.author || "ARIAD Team",
           };
+  
+          console.log(`📝 [BlogClient] Formatted post #${index + 1}:`, {
+            id: formatted.id,
+            slug: formatted.slug,
+            title: formatted.title,
+            category: formatted.category,
+          });
+  
+          return formatted;
         });
+  
+        console.log("✅ [BlogClient] Final formatted posts count:", formattedSupabasePosts.length);
         setAllPosts(formattedSupabasePosts);
+      } else {
+        console.warn("⚠️ [BlogClient] No articles found in database");
+        setAllPosts([]);
       }
     } catch (err) {
-      console.error("Error pulling database articles:", err);
+      console.error("🚨 [BlogClient] Critical error in fetchSupabaseArticles:", err);
     } finally {
       setLoadingSupabase(false);
+      console.log("🏁 [BlogClient] fetchSupabaseArticles completed");
     }
   };
-
+  
   useEffect(() => {
+    console.log("🚀 [BlogClient] useEffect triggered - fetching articles");
     fetchSupabaseArticles();
   }, []);
 
