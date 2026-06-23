@@ -1,7 +1,4 @@
 // app/blog/page.tsx
-"use client";
-
-
 import { Metadata } from "next";
 import BlogClient from "./BlogClient";
 
