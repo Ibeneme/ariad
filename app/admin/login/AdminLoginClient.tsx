@@ -3,8 +3,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { ShieldCheck, Mail, Lock, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/configs/supabase";
 
 export default function AdminLoginClient() {
   const [email, setEmail] = useState("");
@@ -14,7 +14,7 @@ export default function AdminLoginClient() {
   const [error, setError] = useState("");
 
   const router = useRouter();
-  const supabase = createClient();
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
