@@ -9,6 +9,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, User, ArrowLeft, Share2 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
+
 import { supabase } from "@/lib/configs/supabase";
 
 const heroBgFallback =
