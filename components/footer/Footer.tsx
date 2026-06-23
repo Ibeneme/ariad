@@ -1,18 +1,8 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 import logo from "../../assests/images/logo_a.png";
-import {
-  ArrowUp,
-  Mail,
-  Phone,
-  MapPin,
-  Facebook,
-  Instagram,
-  Linkedin,
-  MessageSquareHeart,
-} from "lucide-react";
+import { ArrowUp, Mail, Phone, MapPin, MessageSquareHeart } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -122,21 +112,18 @@ export default function Footer() {
                 href="#facebook"
                 className="flex items-center gap-2.5 hover:text-white transition-colors duration-200 w-fit"
               >
-                <Facebook className="w-4 h-4 text-[#067F76]" />
                 <span>Facebook</span>
               </a>
               <a
                 href="#instagram"
                 className="flex items-center gap-2.5 hover:text-white transition-colors duration-200 w-fit"
               >
-                <Instagram className="w-4 h-4 text-[#067F76]" />
                 <span>Instagram</span>
               </a>
               <a
                 href="#linkedin"
                 className="flex items-center gap-2.5 hover:text-white transition-colors duration-200 w-fit"
               >
-                <Linkedin className="w-4 h-4 text-[#067F76]" />
                 <span>LinkedIn</span>
               </a>
             </div>

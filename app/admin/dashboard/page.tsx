@@ -1,4 +1,7 @@
 // app/admin/dashboard/page.tsx
+"use client";
+
+
 import { Metadata } from "next";
 import DashboardWithToggle from "./DashboardWithToggle";
 
