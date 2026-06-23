@@ -9,6 +9,7 @@ export default async function Page({
 }) {
   const { slug } = await params;
 
+  
   console.warn(slug, 'slugslug')
 
   return <>{slug}</>;
