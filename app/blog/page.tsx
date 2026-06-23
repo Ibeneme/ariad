@@ -101,7 +101,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
       </p>
 
       <Link
-        href={`/blog/${slug}`}
+        href={`/blog/view/${slug}`}
         className="inline-flex items-center gap-3 font-semibold text-[#4F2A7E] hover:text-[#D4AF37] transition-all group-hover:gap-4 text-lg"
       >
         Read Full Article
