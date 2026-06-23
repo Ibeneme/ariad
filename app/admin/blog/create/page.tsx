@@ -30,11 +30,10 @@ import {
   Highlighter,
 } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/configs/supabase";
 
 export default function CreateArticlePage() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [formData, setFormData] = useState({
     title: "",
