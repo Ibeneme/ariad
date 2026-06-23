@@ -633,10 +633,8 @@ export default function CreateArticlePage() {
       if (insertError) throw insertError;
 
       setSuccess("Article published successfully!");
-      setTimeout(() => {
-        router.push("/admin/dashboard");
-        router.refresh();
-      }, 1200);
+      await fetch("/api/revalidate?tag=blog", { method: "POST" }); // if you add this API later
+      router.push(`/blog/view/${finalSlug}`);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to create article");
