@@ -8,18 +8,40 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+// Helper to normalize slug (lowercase, trim, etc.)
+const normalizeSlug = (slug: string): string => {
+  return slug?.toLowerCase().trim() || "";
+};
+
 export async function generateStaticParams() {
+  console.log("🔄 [generateStaticParams] Starting build-time fetch...");
+
   const { data: posts, error } = await supabase.from("articles").select("slug");
-  if (error) console.error("Build-time fetch error:", error);
+
+  if (error) {
+    console.error("❌ [generateStaticParams] Supabase error:", error);
+  } else {
+    console.log(`✅ [generateStaticParams] Found ${posts?.length || 0} posts`, posts);
+    if (posts && posts.length > 0) {
+      console.log(
+        "Slugs generated:",
+        posts.map((p) => p.slug)
+      );
+    }
+  }
+
   return (posts || []).map((post) => ({ slug: post.slug }));
 }
 
-export const dynamicParams = true; // default, but explicit is good
+export const dynamicParams = true;
+export const revalidate = 3600; // ISR: revalidate every hour
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeSlug(rawSlug);
 
-  console.warn("generateMetadata slug:", slug); // better than console.warn(slug, 'slugslug')
+  console.log("📌 [generateMetadata] Received slug:", rawSlug);
+  console.log("🔧 [generateMetadata] Normalized slug:", slug);
 
   const { data: post, error } = await supabase
     .from("articles")
@@ -29,12 +51,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq("slug", slug)
     .single();
 
-  if (error || !post) {
+  if (error) {
+    console.error(
+      `❌ [generateMetadata] Supabase error for slug "${slug}":`,
+      error
+    );
+  }
+
+  if (!post) {
+    console.warn(`⚠️ [generateMetadata] Post not found for slug: "${slug}"`);
     return {
       title: "Article Not Found | ARIAD Psychological Services",
       robots: { index: false, follow: false },
     };
   }
+
+  console.log(
+    `✅ [generateMetadata] Found post: `,post
+  );
 
   const title = post.meta_title || post.title;
   const description = post.meta_description || post.excerpt;
@@ -85,7 +119,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeSlug(rawSlug);
+
+  console.log("🚀 [BlogPostPage] Rendering page for slug:", rawSlug);
+  console.log("🔧 [BlogPostPage] Normalized slug:", slug);
 
   const { data: initialPost, error } = await supabase
     .from("articles")
@@ -94,7 +132,19 @@ export default async function BlogPostPage({ params }: Props) {
     .single();
 
   if (error) {
-    console.error(`[BlogPostPage] Supabase error for slug "${slug}":`, error);
+    console.error(
+      `❌ [BlogPostPage] Supabase error for slug "${slug}":`,
+      error
+    );
+  } else if (initialPost) {
+    console.log(
+      `✅ [BlogPostPage] Successfully fetched post: "${initialPost.title}"`
+    );
+    console.log("Post ID:", initialPost.id, "Category:", initialPost.category);
+  } else {
+    console.warn(
+      `⚠️ [BlogPostPage] No post found for slug: "${slug}" — calling notFound()`
+    );
   }
 
   if (!initialPost) {
