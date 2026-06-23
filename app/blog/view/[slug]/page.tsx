@@ -26,6 +26,7 @@ export async function generateStaticParams() {
       console.log(
         "Slugs generated:",
         posts.map((p) => p.slug)
+        
       );
     }
   }
