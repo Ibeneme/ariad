@@ -220,7 +220,7 @@ export default function BlogPostEach({
             {relatedPosts.map((rel) => (
               <div key={rel.id} className="bg-white rounded-3xl p-8 shadow-sm">
                 <h3 className="font-bold text-lg mb-3">{rel.title}</h3>
-                <Link href={`/blog/${rel.slug}`} className="text-[#067F76]">
+                <Link href={`/blog/view/${rel.slug}`} className="text-[#067F76]">
                   Read Article
                 </Link>
               </div>

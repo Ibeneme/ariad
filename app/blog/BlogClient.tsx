@@ -48,6 +48,42 @@ export default function BlogClient() {
   const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [migrating, setMigrating] = useState(false);
+  const [migrationResult, setMigrationResult] = useState<string | null>(null);
+
+  const migrateArticles = async () => {
+    if (
+      !confirm(
+        "This will pull all articles from Supabase into MongoDB. Continue?"
+      )
+    )
+      return;
+
+    setMigrating(true);
+    setMigrationResult(null);
+
+    try {
+      const res = await fetch("/api/migrate-articles", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Migration failed");
+      }
+
+      setMigrationResult(data.message);
+      console.log("Migration details:", data);
+    } catch (err: any) {
+      setMigrationResult(`Error: ${err.message}`);
+    } finally {
+      setMigrating(false);
+    }
+  };
 
   const fetchArticles = async () => {
     try {
@@ -122,6 +158,9 @@ export default function BlogClient() {
         </div>
       </section>
 
+      {migrationResult && (
+        <p className="text-sm text-slate-600 mt-2">{migrationResult}</p>
+      )}
       {/* Posts Section */}
       <section id="posts" className="max-w-7xl mx-auto px-6 py-20">
         <div className="flex justify-between items-end mb-12">

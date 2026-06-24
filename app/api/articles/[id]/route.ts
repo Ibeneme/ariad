@@ -23,6 +23,19 @@ export async function GET(
     }
 }
 
+export async function getArticleBySlug(slug: string) {
+    await connectDB();
+    const post = await Article.findOne({ slug }).lean(); // .lean() makes it plain JSON
+    return post ? JSON.parse(JSON.stringify(post)) : null;
+}
+
+// export async function GET(req: Request, { params }: { params: { slug: string } }) {
+//     await connectDB();
+//     const article = await Article.findOne({ slug: params.slug });
+//     return NextResponse.json(article || { error: "Not found" });
+// }
+
+
 export async function PUT(
     req: Request,
     { params }: { params: Promise<{ id: string }> }
