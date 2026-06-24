@@ -1,13 +1,24 @@
+// app/api/inquiries/route.ts
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Inquiry from '@/lib/models/Inquiry';
-import { Resend } from 'resend';
-
-// Initialize Resend with your API key
-const resend = new Resend('re_jKw3E4fk_63KYZWDjj55zsR3bKsno9WeJ');
+import nodemailer from 'nodemailer';
 
 /**
- * Styling constants to match the "Quiet Luxury" brand aesthetic
+ * Configure Nodemailer with Zoho SMTP
+ */
+const transporter = nodemailer.createTransport({
+    host: 'smtp.zoho.com',
+    port: 465,
+    secure: true, // Use SSL
+    auth: {
+        user: process.env.ZOHO_EMAIL,
+        pass: process.env.ZOHO_APP_PASSWORD?.replace(/\s/g, ''), // Removes any accidental spaces
+    },
+});
+
+/**
+ * Styling constants
  */
 const emailWrapperStyle = `
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -23,7 +34,6 @@ const emailWrapperStyle = `
 
 const headerStyle = "color: #023B37; font-weight: 800; font-size: 28px; margin-bottom: 24px; letter-spacing: -0.02em;";
 const accentStyle = "color: #067F76; font-weight: 600;";
-const buttonStyle = "display: inline-block; padding: 12px 24px; background-color: #067F76; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: bold; margin-top: 20px;";
 
 export async function GET() {
     try {
@@ -50,48 +60,48 @@ export async function POST(req: Request) {
             message: body.message,
         });
 
-        // 2. Send Notifications
+        // 2. Send Notifications via Zoho SMTP
         try {
             // Email to Client
-            await resend.emails.send({
-                from: 'Ariad\'s Thread <onboarding@resend.dev>',
-                to: [body.email],
+            await transporter.sendMail({
+                from: `Ariad's Thread <${process.env.ZOHO_EMAIL}>`,
+                to: body.email,
                 subject: 'We have received your inquiry',
                 html: `
-          <div style="${emailWrapperStyle}">
-            <h1 style="${headerStyle}">Hello ${body.name},</h1>
-            <p>Thank you for reaching out to us. We have received your inquiry for <strong>${body.location}</strong>.</p>
-            <p>At Ariad's Thread, we believe that understanding and support work like a golden thread—a gentle, steady guide through life's complexities.</p>
-            <p>A member of our team will review your message shortly and reach out to you to discuss how we can best support your path toward <span style="${accentStyle}">Clinical Clarity</span>.</p>
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-              <p style="font-size: 13px; color: #64748b;">Confidentiality is our priority. If you need to update your inquiry, please feel free to reply to this email.</p>
-            </div>
-          </div>
-        `,
+                  <div style="${emailWrapperStyle}">
+                    <h1 style="${headerStyle}">Hello ${body.name},</h1>
+                    <p>Thank you for reaching out to us. We have received your inquiry for <strong>${body.location}</strong>.</p>
+                    <p>At Ariad's Thread, we believe that understanding and support work like a golden thread—a gentle, steady guide through life's complexities.</p>
+                    <p>A member of our team will review your message shortly and reach out to you to discuss how we can best support your path toward <span style="${accentStyle}">Clinical Clarity</span>.</p>
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                      <p style="font-size: 13px; color: #64748b;">Confidentiality is our priority. If you need to update your inquiry, please feel free to reply to this email.</p>
+                    </div>
+                  </div>
+                `,
             });
 
-            // Email to Admin (You)
-            await resend.emails.send({
-                from: 'Inquiry System <onboarding@resend.dev>',
-                to: ['admin@boringthinkers.com'],
+            // Email to Admin
+            await transporter.sendMail({
+                from: `Inquiry System <${process.env.ZOHO_EMAIL}>`,
+                to: process.env.ZOHO_EMAIL,
                 subject: `New Inquiry: ${body.name} (${body.location})`,
                 html: `
-          <div style="${emailWrapperStyle}">
-            <h2 style="${headerStyle}">New Inquiry Received</h2>
-            <p><strong>Name:</strong> ${body.name}</p>
-            <p><strong>Email:</strong> ${body.email}</p>
-            <p><strong>Phone:</strong> ${body.phone}</p>
-            <p><strong>Location:</strong> ${body.location}</p>
-            <p><strong>Message:</strong></p>
-            <blockquote style="background: #f1f5f9; padding: 15px; border-left: 4px solid #067F76; border-radius: 4px;">
-              ${body.message}
-            </blockquote>
-          </div>
-        `,
+                  <div style="${emailWrapperStyle}">
+                    <h2 style="${headerStyle}">New Inquiry Received</h2>
+                    <p><strong>Name:</strong> ${body.name}</p>
+                    <p><strong>Email:</strong> ${body.email}</p>
+                    <p><strong>Phone:</strong> ${body.phone}</p>
+                    <p><strong>Location:</strong> ${body.location}</p>
+                    <p><strong>Message:</strong></p>
+                    <blockquote style="background: #f1f5f9; padding: 15px; border-left: 4px solid #067F76; border-radius: 4px;">
+                      ${body.message}
+                    </blockquote>
+                  </div>
+                `,
             });
         } catch (emailError) {
-            // We log the error but don't fail the request since the DB save succeeded
             console.error("Email service error:", emailError);
+            // We don't return an error here because the DB record was already created.
         }
 
         return NextResponse.json({
