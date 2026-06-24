@@ -10,16 +10,16 @@ import {
   AlertCircle,
   Search,
 } from "lucide-react";
-import { supabase } from "@/lib/configs/supabase";
 
 interface Inquiry {
-  id: string;
-  created_at: string;
+  _id: string;
   name: string;
   email: string;
   phone: string;
   location: string;
   message: string;
+  created_at: string;
+  status?: string;
 }
 
 export default function Inquires() {
@@ -42,13 +42,14 @@ export default function Inquires() {
     setLoading(true);
     setErrorMsg("");
     try {
-      const { data, error } = await supabase
-        .from("inquiries")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const res = await fetch("/api/inquiries", {
+        cache: "no-store",
+      });
 
-      if (error) throw error;
-      setInquiries(data || []);
+      if (!res.ok) throw new Error("Failed to fetch inquiries");
+
+      const data = await res.json();
+      setInquiries(data);
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to load data");
     } finally {
@@ -63,7 +64,7 @@ export default function Inquires() {
   return (
     <div className="min-h-screen bg-stone-50 p-6 sm:p-10">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8  pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 pb-5">
           <div>
             <h1 className="text-2xl font-bold text-stone-900">
               Clinical Inquiries
@@ -115,16 +116,14 @@ export default function Inquires() {
           <div className="text-center py-20 bg-white border border-stone-200 rounded-2xl">
             <AlertCircle className="w-16 h-16 text-amber-400 mx-auto mb-4" />
             <p className="text-xl font-medium text-stone-600">
-              {searchQuery
-                ? "No matching inquiries found"
-                : "No inquiries visible"}
+              {searchQuery ? "No matching inquiries found" : "No inquiries yet"}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
             {filteredInquiries.map((item) => (
               <div
-                key={item.id}
+                key={item._id}
                 className="bg-white rounded-2xl p-6 flex flex-col md:flex-row gap-6"
               >
                 <div className="flex-1 space-y-4">

@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { supabase } from "@/lib/configs/supabase";
-
 
 export default function AdminGuard({
   children,
@@ -12,10 +10,8 @@ export default function AdminGuard({
 }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [checking, setChecking] = useState(true);
-
   const router = useRouter();
   const pathname = usePathname();
-
 
   useEffect(() => {
     // Skip guard for login page
@@ -25,28 +21,19 @@ export default function AdminGuard({
       return;
     }
 
-    const checkAuth = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const token = localStorage.getItem("adminToken");
+    // Check for our custom JWT token
+    const token = localStorage.getItem("adminToken");
 
-        if (session || token) {
-          setIsAuthorized(true);
-        } else {
-          router.replace("/admin/login");
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
-        router.replace("/admin/login");
-      } finally {
-        setChecking(false);
-      }
-    };
+    if (token) {
+      // Optional: Add logic here to verify if token is expired
+      // by decoding it (e.g., using jwt-decode library)
+      setIsAuthorized(true);
+    } else {
+      router.replace("/admin/login");
+    }
 
-    checkAuth();
-  }, [router, supabase, pathname]);
+    setChecking(false);
+  }, [router, pathname]);
 
   if (checking) {
     return (

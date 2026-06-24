@@ -1,8 +1,9 @@
 // app/blog/[slug]/page.tsx
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server"; // Updated import
+
 import BlogPostEach from "./BlogPostEach";
+import { getArticleBySlug } from "@/api/articles/route";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -10,35 +11,28 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createClient(); // Use the server client
-
-  const { data: post } = await supabase
-    .from("articles")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
+  const post = await getArticleBySlug(slug);
 
   if (!post) return { title: "Article Not Found" };
 
   return {
     title: post.meta_title || post.title,
     description: post.meta_description || post.excerpt,
+    // Add openGraph tags here for better social sharing
+    openGraph: {
+      images: [post.og_image_url || post.image_url],
+    },
   };
 }
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClient(); // Use the server client
+  const post = await getArticleBySlug(slug);
 
-  const { data: initialPost, error } = await supabase
-    .from("articles")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (error || !initialPost) {
+  if (!post) {
     notFound();
   }
 
-  return <BlogPostEach slug={slug} initialPost={initialPost} />;
+  // Passing 'post' as initialPost to your Client Component
+  return <BlogPostEach slug={slug} initialPost={post} />;
 }

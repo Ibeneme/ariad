@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-
+import { useRouter } from "next/navigation";
 import {
   Loader2,
   ArrowLeft,
@@ -30,12 +30,12 @@ import {
   Highlighter,
 } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client"; // Updated import
-import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function CreateArticlePage() {
   const router = useRouter();
-  const supabase = createClient()
+  const supabase = createClient();
+
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -580,62 +580,41 @@ export default function CreateArticlePage() {
     setSuccess("");
 
     try {
-      let finalSlug = formData.slug || generateSlug(formData.title);
+      const formPayload = new FormData();
 
-      const { data: existing } = await supabase
-        .from("articles")
-        .select("slug")
-        .eq("slug", finalSlug)
-        .single();
+      const finalSlugInput = formData.slug || generateSlug(formData.title);
 
-      if (existing) {
-        finalSlug = `${finalSlug}-${Math.random()
-          .toString(36)
-          .substring(2, 6)}`;
+      formPayload.append("title", formData.title);
+      formPayload.append("slug", finalSlugInput);
+      formPayload.append("category", formData.category);
+      formPayload.append("excerpt", formData.excerpt);
+      formPayload.append("content", formData.content);
+      formPayload.append("meta_title", formData.metaTitle);
+      formPayload.append("meta_description", formData.metaDescription);
+      formPayload.append("canonical_url", formData.canonicalUrl);
+
+      if (formData.structuredData) {
+        formPayload.append("structured_data", formData.structuredData);
       }
 
-      let imageUrl: string | null = null;
-      let ogImageUrl: string | null = null;
+      if (image) formPayload.append("image", image);
+      if (ogImage) formPayload.append("ogImage", ogImage);
 
-      if (image) imageUrl = await uploadImage(image, "articles");
-      if (ogImage) ogImageUrl = await uploadImage(ogImage, "og");
+      const res = await fetch("/api/articles", {
+        method: "POST",
+        body: formPayload,
+      });
 
-      const articleData = {
-        title: formData.title,
-        slug: finalSlug,
-        category: formData.category,
-        excerpt: formData.excerpt,
-        content: formData.content,
-        image_url: imageUrl,
-        og_image_url: ogImageUrl || imageUrl,
-        meta_title:
-          formData.metaTitle ||
-          `${formData.title} | ARIAD Psychological Services`,
-        meta_description:
-          formData.metaDescription || formData.excerpt.slice(0, 155),
-        canonical_url:
-          formData.canonicalUrl ||
-          `https://ariadpsychservices.com/blog/${finalSlug}`,
-        structured_data: formData.structuredData
-          ? JSON.parse(formData.structuredData)
-          : {
-              "@context": "https://schema.org",
-              "@type": "NewsArticle",
-              headline: formData.title,
-              description: formData.excerpt,
-              url: `https://ariadpsychservices.com/blog/${finalSlug}`,
-            },
-        created_at: new Date().toISOString(),
-      };
+      const result = await res.json();
 
-      const { error: insertError } = await supabase
-        .from("articles")
-        .insert([articleData]);
-      if (insertError) throw insertError;
+      if (!res.ok) {
+        throw new Error(result.error || "Failed to create article");
+      }
 
       setSuccess("Article published successfully!");
-      await fetch("/api/revalidate?tag=blog", { method: "POST" }); // if you add this API later
-      router.push(`/blog/view/${finalSlug}`);
+      setTimeout(() => {
+        router.push(`/admin/dashboard`);
+      }, 1200);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to create article");

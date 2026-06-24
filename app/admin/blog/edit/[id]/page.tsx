@@ -39,7 +39,7 @@ export default function EditArticlePage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
-  const supabase = createClient()
+  const supabase = createClient();
   const [id, setId] = useState<string>("");
   const [formData, setFormData] = useState({
     title: "",
@@ -101,47 +101,49 @@ export default function EditArticlePage({
     params.then((p) => setId(p.id));
   }, [params]);
 
+  // Fetch article
   useEffect(() => {
     if (!id) return;
 
     const fetchArticle = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("articles")
-        .select("*")
-        .eq("id", id)
-        .single();
+      try {
+        const res = await fetch(`/api/articles/${id}`);
+        if (!res.ok) throw new Error("Failed to fetch article");
 
-      if (error || !data) {
-        setError("Article not found");
+        const data = await res.json();
+
+        setFormData({
+          title: data.title || "",
+          slug: data.slug || "",
+          category: data.category || "General",
+          excerpt: data.excerpt || "",
+          content: data.content || "",
+          metaTitle: data.meta_title || "",
+          metaDescription: data.meta_description || "",
+          canonicalUrl: data.canonical_url || "",
+          structuredData: data.structured_data
+            ? JSON.stringify(data.structured_data, null, 2)
+            : "",
+        });
+
+        setCurrentImageUrl(data.image_url || "");
+        setCurrentOgImageUrl(data.og_image_url || "");
+        setImagePreview(data.image_url || null);
+        setOgPreview(data.og_image_url || null);
+
+        // Populate editor content
+        if (contentRef.current) {
+          contentRef.current.innerHTML = data.content || "";
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to load article");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      setFormData({
-        title: data.title || "",
-        slug: data.slug || "",
-        category: data.category || "General",
-        excerpt: data.excerpt || "",
-        content: data.content || "",
-        metaTitle: data.meta_title || "",
-        metaDescription: data.meta_description || "",
-        canonicalUrl: data.canonical_url || "",
-        structuredData: data.structured_data
-          ? JSON.stringify(data.structured_data, null, 2)
-          : "",
-      });
-
-      setCurrentImageUrl(data.image_url || "");
-      setCurrentOgImageUrl(data.og_image_url || "");
-      setImagePreview(data.image_url || null);
-      setOgPreview(data.og_image_url || null);
-
-      setLoading(false);
     };
 
     fetchArticle();
-  }, [id, supabase]);
+  }, [id]);
 
   useEffect(() => {
     if (!loading && contentRef.current) {
@@ -667,12 +669,15 @@ export default function EditArticlePage({
         updated_at: new Date().toISOString(),
       };
 
-      const { error: updateError } = await supabase
-        .from("articles")
-        .update(articleData)
-        .eq("id", id);
+      const res = await fetch(`/api/articles/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(articleData),
+      });
 
-      if (updateError) throw updateError;
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.error || "Failed to update article");
 
       setSuccess("Article updated successfully!");
       setTimeout(() => {

@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
-import { createClient } from "@/lib/supabase/client"; // Updated import
 import { useRouter } from "next/navigation";
 
 const heroBg =
@@ -47,41 +46,29 @@ interface BlogPost {
 
 export default function BlogClient() {
   const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
-  const [loadingSupabase, setLoadingSupabase] = useState(true);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClient()
-  const fetchSupabaseArticles = async () => {
+
+  const fetchArticles = async () => {
     try {
-      console.log("🔄 [BlogClient] Starting fetchSupabaseArticles...");
-      router.refresh()
-      setLoadingSupabase(true);
-  
-      const { data, error } = await supabase
-        .from("articles")
-        .select("*")
-        .order("created_at", { ascending: false });
-  
-      console.log("📊 [BlogClient] Supabase response received:");
-      console.log("   • Error:", error);
-      console.log("   • Data count:", data?.length || 0);
-      console.log("   • Raw data:", data);
-  
-      if (error) {
-        console.error("❌ [BlogClient] Supabase Error:", error);
-        throw error;
-      }
-  
+      setLoading(true);
+      const res = await fetch("/api/articles");
+
+      if (!res.ok) throw new Error("Failed to fetch");
+
+      const data = await res.json();
+
       if (data && data.length > 0) {
-        const formattedSupabasePosts: BlogPost[] = data.map((article: any, index: number) => {
+        const formattedPosts: BlogPost[] = data.map((article: any) => {
           const words =
             article.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
-  
-          const formatted = {
-            id: article.id,
+
+          return {
+            id: article._id, // MongoDB uses _id
             slug: article.slug,
             title: article.title,
             excerpt: article.excerpt,
-            category: article.category || "Corporate Law",
+            category: article.category || "General",
             date: new Date(article.created_at).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
@@ -91,34 +78,20 @@ export default function BlogClient() {
             image: article.image_url || heroBg,
             author: article.author || "ARIAD Team",
           };
-  
-          console.log(`📝 [BlogClient] Formatted post #${index + 1}:`, {
-            id: formatted.id,
-            slug: formatted.slug,
-            title: formatted.title,
-            category: formatted.category,
-          });
-  
-          return formatted;
         });
-  
-        console.log("✅ [BlogClient] Final formatted posts count:", formattedSupabasePosts.length);
-        setAllPosts(formattedSupabasePosts);
-      } else {
-        console.warn("⚠️ [BlogClient] No articles found in database");
-        setAllPosts([]);
+
+        setAllPosts(formattedPosts);
       }
     } catch (err) {
-      console.error("🚨 [BlogClient] Critical error in fetchSupabaseArticles:", err);
+      console.error("🚨 Error:", err);
     } finally {
-      setLoadingSupabase(false);
-      console.log("🏁 [BlogClient] fetchSupabaseArticles completed");
+      setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     console.log("🚀 [BlogClient] useEffect triggered - fetching articles");
-    fetchSupabaseArticles();
+    fetchArticles();
   }, []);
 
   return (
@@ -155,7 +128,7 @@ export default function BlogClient() {
           <h2 className="text-4xl font-bold text-[#023B37]">Latest Insights</h2>
         </div>
 
-        {loadingSupabase ? (
+        {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
               <SkeletonCard key={i} />
