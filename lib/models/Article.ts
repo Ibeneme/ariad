@@ -15,7 +15,8 @@ export interface IArticle extends Document {
     canonical_url: string;
     structured_data: Record<string, any>;
     created_at: Date;
-    _id?: any
+    _id?: any;
+    supabase_id?: any
 }
 
 // 2. Define the Mongoose Schema
@@ -32,6 +33,7 @@ const ArticleSchema: Schema = new Schema({
     canonical_url: { type: String },
     structured_data: { type: Object },
     created_at: { type: Date, default: Date.now },
+    supabase_id: { type: String, index: true },
 
 });
 

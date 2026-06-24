@@ -83,39 +83,39 @@ export async function POST(
     const body = await req.json();
 
     try {
+     
+
         if (action === 'signin') {
             const { email, password } = body;
-           // await Admin.deleteMany({})
+
             if (!email || !password) {
                 return NextResponse.json({ error: 'Required fields missing' }, { status: 400 });
             }
 
-            let admin = await Admin.findOne({ email });
-            let isNewAdmin = false;
+            const admin = await Admin.findOne({ email });
 
+            // 1. Verify that the admin exists
             if (!admin) {
-                const hashedPassword = await bcrypt.hash(password, 12);
-                admin = await Admin.create({ email, password: hashedPassword });
-                isNewAdmin = true;
-
-                await sendWelcomeEmail(email);
-            } else if (!(await bcrypt.compare(password, admin.password))) {
                 return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
             }
 
+            // 2. Verify the password matches the hash
+            const isMatch = await bcrypt.compare(password, admin.password);
+            if (!isMatch) {
+                return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+            }
+
+            // 3. Generate the token
             const token = jwt.sign(
                 { id: admin._id, email: admin.email },
                 JWT_SECRET,
                 { expiresIn: '7d' }
             );
 
-            // NOTE: the line that used to be here — `await Admin.deleteMany({})` —
-            // wiped every admin account on every single sign-in. Removed.
-
             return NextResponse.json({
                 success: true,
                 token,
-                message: isNewAdmin ? 'Account created' : 'Login successful',
+                message: 'Login successful',
             });
         }
 

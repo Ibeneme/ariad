@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import BlogPostEach from "./BlogPostEach";
-import { getArticleBySlug } from "@/api/articles/route";
+import { getArticleBySlug } from "@/app/api/articles/route";
 
 type Props = {
   params: Promise<{ slug: string }>;
