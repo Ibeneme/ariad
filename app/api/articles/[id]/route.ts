@@ -1,11 +1,11 @@
 // app/api/articles/[id]/route.ts
-// NOTE: despite the folder being named [id], this route is effectively slug-based for GET
-// (for admin edit-by-_id lookups, use /api/articles/by-id/[id] instead)
+// NOTE: despite the folder being named [id], this route is effectively slug-based
+// (kept as-is for the public blog page, which calls getArticleBySlug).
+// For admin edit-by-_id lookups, use /api/articles/by-id/[id] instead.
 
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Article from '@/lib/models/Article';
-import { getArticleBySlug } from '../route';   // ← Shared helper
 
 export async function GET(
     req: Request,
@@ -14,7 +14,15 @@ export async function GET(
     try {
         const { id: slug } = await params;
 
-        const article = await getArticleBySlug(slug);
+        await connectDB();
+
+        let article = await Article.findOne({ slug }).lean();
+
+        if (!article) {
+            article = await Article.findOne({
+                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
+            }).lean();
+        }
 
         if (!article) {
             return NextResponse.json({ error: "Article not found" }, { status: 404 });
@@ -28,6 +36,26 @@ export async function GET(
             details: error.message
         }, { status: 500 });
     }
+}
+
+// Re-export for use in Server Components (public blog page)
+// lib/articles.ts
+export async function getArticleBySlug(slug: string) {
+  // 1. Log the input to ensure the slug is being passed correctly
+  console.log("Fetching article for slug:", slug);
+
+  // Example for MongoDB
+  const article = await db.collection('articles').findOne({ slug });
+  
+  // 2. Log the raw result from the database
+  console.log("Database result:", article);
+
+  // 3. Optional: Add a check if the article is null
+  if (!article) {
+    console.warn(`No article found for slug: ${slug}`);
+  }
+
+  return article;
 }
 
 export async function PUT(

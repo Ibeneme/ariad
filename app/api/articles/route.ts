@@ -103,3 +103,44 @@ export async function GET() {
     }
 }
 
+
+
+
+
+
+const getIdFromUrl = (req: Request) => {
+    const url = new URL(req.url);
+    const parts = url.pathname.split('/');
+    // Assuming structure /api/articles/[id] or /api/articles?id=...
+    // This looks for the last segment if it looks like a MongoDB ID
+    const potentialId = parts[parts.length - 1];
+    return potentialId !== 'articles' ? potentialId : null;
+};
+
+
+export async function PUT(req: Request) {
+    const id = getIdFromUrl(req);
+    if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    try {
+        await connectDB();
+        const data = await req.json();
+        const updated = await Article.findByIdAndUpdate(id, { ...data, updated_at: new Date() }, { new: true });
+        return updated ? NextResponse.json({ success: true }) : NextResponse.json({ error: "Not found" }, { status: 404 });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: Request) {
+    const id = getIdFromUrl(req);
+    if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    try {
+        await connectDB();
+        const deleted = await Article.findByIdAndDelete(id);
+        return deleted ? NextResponse.json({ success: true }) : NextResponse.json({ error: "Not found" }, { status: 404 });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
