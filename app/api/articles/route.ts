@@ -3,6 +3,49 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Article from '@/lib/models/Article';
 
+
+export async function GET(req: Request) {
+    try {
+        await connectDB();
+        const articles = await Article.find({}).sort({ created_at: -1 }).lean();
+        return NextResponse.json(articles);
+    } catch (error) {
+        console.error("GET articles error:", error);
+        return NextResponse.json({ error: "Failed to fetch articles" }, { status: 500 });
+    }
+}
+
+export async function getAllArticles() {
+    try {
+        await connectDB();
+        return await Article.find({}).sort({ created_at: -1 }).lean();
+    } catch (error) {
+        console.error("getAllArticles error:", error);
+        return [];
+    }
+}
+
+export async function getArticleBySlug(slug: string) {
+    if (!slug) return null;
+
+    try {
+        await connectDB();
+        let article = await Article.findOne({ slug }).lean();
+
+        if (!article) {
+            article = await Article.findOne({
+                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
+            }).lean();
+        }
+
+        return article;
+    } catch (error) {
+        console.error("getArticleBySlug error:", error);
+        return null;
+    }
+}
+
+
 export async function POST(req: Request) {
     try {
         await connectDB();
@@ -61,30 +104,6 @@ export async function POST(req: Request) {
     }
 }
 
-export async function getArticleBySlug(slug: string) {
-    console.log("🔍 getArticleBySlug called with:", slug);
-
-    try {
-        await connectDB();
-
-        let article = await Article.findOne({ slug }).lean();
-
-        // Case-insensitive fallback
-        if (!article) {
-            article = await Article.findOne({
-                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
-            }).lean();
-        }
-
-        console.log("✅ Article found:", article ? article.title : null);
-
-        return article;
-    } catch (error: any) {
-        console.error("❌ getArticleBySlug error:", error);
-        return null;
-    }
-}
-
 
 // Add this function
 // app/api/articles/route.ts
@@ -111,29 +130,6 @@ export async function getArticleById(id: string) {
     } catch (error: any) {
         console.error("❌ getArticleById error:", error);
         return null;
-    }
-}
-
-// Optional: Get all articles for listing / generateStaticParams
-export async function getAllArticles() {
-    try {
-        await connectDB();
-        return await Article.find({})
-            .sort({ created_at: -1 })
-            .lean();
-    } catch (error) {
-        console.error("Error fetching all articles:", error);
-        return [];
-    }
-}
-
-export async function GET() {
-    try {
-        await connectDB();
-        const articles = await Article.find({}).sort({ created_at: -1 });
-        return NextResponse.json(articles);
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch articles" }, { status: 500 });
     }
 }
 
