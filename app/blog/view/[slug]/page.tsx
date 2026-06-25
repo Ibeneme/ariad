@@ -2,7 +2,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BlogPostEach from "./BlogPostEach";
-import { getArticleBySlug } from "@/app/api/articles/route"; // ← Fixed import
+import { getArticleBySlug } from "@/app/api/articles/[id]/route";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -10,29 +10,29 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  console.log("🟢 Server Page - Loading slug:", slug); // will show in Vercel logs
-
   const post = await getArticleBySlug(slug);
 
-  if (!post) {
-    console.log("❌ Article not found for slug:", slug);
-    notFound();
-  }
+  if (!post) return { title: "Article Not Found" };
 
   return {
     title: post.meta_title || post.title,
     description: post.meta_description || post.excerpt,
     openGraph: {
-      images: [post.og_image_url || post.image_url],
+      images: [post.og_image_url || post.image_url || ""],
     },
   };
 }
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
+  console.log("📄 Loading blog post with slug:", slug); // Will appear in Vercel logs
+
   const post = await getArticleBySlug(slug);
 
-  if (!post) notFound();
+  if (!post) {
+    console.log("❌ Article not found:", slug);
+    notFound();
+  }
 
   return <BlogPostEach slug={slug} initialPost={post} />;
 }
