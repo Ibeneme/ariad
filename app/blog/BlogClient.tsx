@@ -209,12 +209,15 @@ export default function BlogClient() {
                   <p className="text-slate-600 line-clamp-3 mb-6">
                     {post.excerpt}
                   </p>
-                  <Link
-                    href={`/blog/view/${post.slug}`}
-                    className="text-[#067F76] font-medium flex items-center gap-1 hover:gap-2 transition-all"
+                  <button
+                    onClick={() => {
+                      console.log("Navigating to article slug:", post.slug);
+                      router.push(`/blog/view/${post.slug}`);
+                    }}
+                    className="text-[#067F76] font-medium flex items-center gap-1 hover:gap-2 transition-all bg-transparent border-none cursor-pointer"
                   >
                     Read More <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  </button>
                 </div>
               </motion.article>
             ))}

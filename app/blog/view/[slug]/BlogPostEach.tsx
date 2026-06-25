@@ -33,8 +33,14 @@ interface BlogPostClientProps {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatArticle(data: any): BlogPost {
+  console.log("🔧 formatArticle called with data:", data ? "YES" : "NO");
+  console.log("📝 formatArticle - Title:", data?.title);
+  console.log("📝 formatArticle - Slug:", data?.slug);
+
   const words = data.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
   const computedReadTime = Math.max(1, Math.ceil(words / 200)) + " min read";
+  console.log("⏱️ Computed read time:", computedReadTime, "words:", words);
+
   const formattedDate = data.created_at
     ? new Date(data.created_at).toLocaleDateString("en-US", {
         year: "numeric",
@@ -43,7 +49,9 @@ function formatArticle(data: any): BlogPost {
       })
     : "Recent";
 
-  return {
+  console.log("📅 Formatted date:", formattedDate);
+
+  const formatted = {
     id: data._id || data.id,
     slug: data.slug,
     title: data.title,
@@ -57,6 +65,9 @@ function formatArticle(data: any): BlogPost {
     author: data.author || "ARIAD Team",
     created_at: data.created_at,
   };
+
+  console.log("✅ formatArticle completed:", formatted.title);
+  return formatted;
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -64,46 +75,83 @@ export default function BlogPostEach({
   slug,
   initialPost,
 }: BlogPostClientProps) {
+  console.log("🚀 BlogPostEach component mounted");
+  console.log("📌 Props received - Slug:", slug);
+  console.log("📦 Initial Post received:", initialPost ? "YES" : "NO");
+
   const [post, setPost] = useState<BlogPost | null>(
     initialPost ? formatArticle(initialPost) : null
   );
+  console.log("📊 Initial post state set:", post ? "YES" : "NO");
 
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(!initialPost);
   const [shareSuccess, setShareSuccess] = useState(false);
   const relatedFetched = useRef(false);
 
+  console.log("⚙️ Initial loading state:", loading);
+
   useEffect(() => {
+    console.log(
+      "🔄 useEffect triggered - Slug:",
+      slug,
+      "InitialPost:",
+      !!initialPost
+    );
+
     const fetchData = async () => {
+      console.log("🌐 fetchData started");
       setLoading(true);
+      console.log("⏳ Loading set to true");
+
       try {
         let currentPost = initialPost;
+        console.log("📥 Using initialPost:", !!currentPost);
 
         if (!currentPost) {
+          console.log("🔍 Fetching post from API for slug:", slug);
           const res = await fetch(`/api/articles/slug/${slug}`);
+          console.log("📡 API response status:", res.status, res.ok);
+
           if (res.ok) {
             currentPost = await res.json();
+            console.log("✅ Fetched post from API:", currentPost?.title);
+          } else {
+            console.log("❌ API fetch failed");
           }
         }
 
         if (currentPost) {
-          setPost(formatArticle(currentPost));
+          const formatted = formatArticle(currentPost);
+          setPost(formatted);
+          console.log("✅ Post state updated via setPost");
         }
 
         if (currentPost && !relatedFetched.current) {
+          console.log("🔗 Fetching related posts...");
           relatedFetched.current = true;
           const res = await fetch(
             `/api/articles?category=${currentPost.category}&exclude=${slug}`
           );
+          console.log("📡 Related posts API status:", res.status);
+
           const relatedData = await res.json();
+          console.log(
+            "📊 Related data received count:",
+            relatedData?.length || 0
+          );
+
           if (Array.isArray(relatedData)) {
-            setRelatedPosts(relatedData.slice(0, 3).map(formatArticle));
+            const formattedRelated = relatedData.slice(0, 3).map(formatArticle);
+            setRelatedPosts(formattedRelated);
+            console.log("✅ Related posts set:", formattedRelated.length);
           }
         }
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("❌ Error fetching data:", err);
       } finally {
         setLoading(false);
+        console.log("⏹️ Loading set to false");
       }
     };
 
@@ -111,27 +159,52 @@ export default function BlogPostEach({
   }, [slug, initialPost]);
 
   const handleShare = async () => {
-    if (!post) return;
+    console.log("🔗 handleShare clicked");
+    if (!post) {
+      console.log("⚠️ handleShare - No post available");
+      return;
+    }
+
     if (navigator.share) {
+      console.log("📱 Using Web Share API");
       try {
         await navigator.share({ title: post.title, url: window.location.href });
+        console.log("✅ Shared successfully via navigator.share");
       } catch (err) {
-        console.error("Share failed", err);
+        console.error("❌ Share failed", err);
       }
     } else {
+      console.log("📋 Falling back to clipboard");
       await navigator.clipboard.writeText(window.location.href);
       setShareSuccess(true);
-      setTimeout(() => setShareSuccess(false), 2500);
+      console.log("✅ Link copied to clipboard");
+      setTimeout(() => {
+        setShareSuccess(false);
+        console.log("⏰ Share success state reset");
+      }, 2500);
     }
   };
 
-  if (loading) return <ArticleSkeleton />;
-  if (!post)
+  console.log(
+    "🎨 Rendering BlogPostEach - Loading:",
+    loading,
+    "Post exists:",
+    !!post
+  );
+
+  if (loading) {
+    console.log("🟡 Showing ArticleSkeleton");
+    return <ArticleSkeleton />;
+  }
+
+  if (!post) {
+    console.log("❌ No post found - Showing Not Found");
     return (
       <div className="min-h-screen flex items-center justify-center">
         Article Not Found
       </div>
     );
+  }
 
   const sanitizedContent = DOMPurify.sanitize(post.content, {
     ALLOWED_TAGS: [
@@ -159,6 +232,8 @@ export default function BlogPostEach({
     ],
     ALLOWED_ATTR: ["href", "target", "rel", "src", "alt", "style", "class"],
   });
+
+  console.log("🧼 Sanitized content length:", sanitizedContent.length);
 
   return (
     <div className="bg-[#FAF8F5] min-h-screen pb-20">
@@ -264,33 +339,39 @@ export default function BlogPostEach({
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {relatedPosts.map((rel) => (
-              <Link
-                key={rel.id}
-                href={`/blog/view/${rel.slug}`}
-                className="block group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#067F76]/20"
-              >
-                <div className="relative h-48 sm:h-52 lg:h-56">
-                  <Image
-                    src={rel.image}
-                    alt={rel.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-6 sm:p-8">
-                  <div className="font-bold text-lg sm:text-xl mb-3 group-hover:text-[#067F76] transition-colors line-clamp-2">
-                    {rel.title}
+            {relatedPosts.map((rel, index) => {
+              console.log(
+                `🔗 Rendering related post #${index + 1}:`,
+                rel.title
+              );
+              return (
+                <Link
+                  key={rel.id}
+                  href={`/blog/view/${rel.slug}`}
+                  className="block group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#067F76]/20"
+                >
+                  <div className="relative h-48 sm:h-52 lg:h-56">
+                    <Image
+                      src={rel.image}
+                      alt={rel.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
-                  <p className="text-gray-600 text-sm line-clamp-3 mb-6">
-                    {rel.excerpt}
-                  </p>
-                  <span className="text-[#067F76] font-medium inline-flex items-center gap-2 group-hover:gap-3 transition-all text-sm">
-                    Read Article →
-                  </span>
-                </div>
-              </Link>
-            ))}
+                  <div className="p-6 sm:p-8">
+                    <div className="font-bold text-lg sm:text-xl mb-3 group-hover:text-[#067F76] transition-colors line-clamp-2">
+                      {rel.title}
+                    </div>
+                    <p className="text-gray-600 text-sm line-clamp-3 mb-6">
+                      {rel.excerpt}
+                    </p>
+                    <span className="text-[#067F76] font-medium inline-flex items-center gap-2 group-hover:gap-3 transition-all text-sm">
+                      Read Article →
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
@@ -300,6 +381,7 @@ export default function BlogPostEach({
 
 // ── Skeleton ───────────────────────────────────────────────────────────────
 function ArticleSkeleton() {
+  console.log("🦴 ArticleSkeleton rendered");
   return (
     <div className="bg-[#FAF8F5] min-h-screen pb-20">
       <style jsx global>{`
