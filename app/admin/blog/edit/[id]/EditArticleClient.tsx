@@ -29,9 +29,10 @@ import {
   Trash2,
   Palette,
   Highlighter,
+  Edit3,
 } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client"; // Updated import
+import { createClient } from "@/lib/supabase/client";
 
 export default function EditArticleClient({
   article,
@@ -59,7 +60,7 @@ export default function EditArticleClient({
 
   const [image, setImage] = useState<File | null>(null);
   const [ogImage, setOgImage] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false); // already loaded
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -76,9 +77,12 @@ export default function EditArticleClient({
   const [isSlugCustomized, setIsSlugCustomized] = useState(false);
   const [isMetaTitleCustomized, setIsMetaTitleCustomized] = useState(false);
   const [isMetaDescCustomized, setIsMetaDescCustomized] = useState(false);
+  const [isStructuredDataCustomized, setIsStructuredDataCustomized] =
+    useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const structuredDataRef = useRef<HTMLTextAreaElement>(null);
 
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const [currentFontSize, setCurrentFontSize] = useState("16");
@@ -105,6 +109,69 @@ export default function EditArticleClient({
       .replace(/-+/g, "-");
   };
 
+  // ==================== STRUCTURED DATA AUTO-GENERATION ====================
+  const generateStructuredData = (data: typeof formData): string => {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const articleUrl =
+      data.canonicalUrl ||
+      `${process.env.NEXT_PUBLIC_SITE_URL}/blog/view/${data.slug || generateSlug(data.title)}`;
+
+    const structured = {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      url: articleUrl,
+      headline: data.title || "Untitled Article",
+      description: data.excerpt || data.metaDescription || "",
+      datePublished: new Date().toISOString(),
+      dateModified: new Date().toISOString(),
+      author: {
+        "@type": "Organization",
+        name: "ARIAD Psychological Services",
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "ARIAD Psychological Services",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://ariadpsychservices.com/logo.png",
+        },
+      },
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": articleUrl,
+      },
+    };
+
+    return JSON.stringify(structured, null, 2);
+  };
+
+  // Auto-update structured data when fields change (if not manually customized)
+  useEffect(() => {
+    if (!isStructuredDataCustomized && (formData.title || formData.excerpt)) {
+      const newStructured = generateStructuredData(formData);
+      setFormData((prev) => ({ ...prev, structuredData: newStructured }));
+    }
+  }, [
+    formData.title,
+    formData.excerpt,
+    formData.slug,
+    formData.canonicalUrl,
+    isStructuredDataCustomized,
+  ]);
+
+  const handleStructuredDataChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    setIsStructuredDataCustomized(true);
+    setFormData((prev) => ({ ...prev, structuredData: e.target.value }));
+  };
+
+  const resetToAutoStructured = () => {
+    setIsStructuredDataCustomized(false);
+    const autoData = generateStructuredData(formData);
+    setFormData((prev) => ({ ...prev, structuredData: autoData }));
+  };
+
   useEffect(() => {
     if (!loading && contentRef.current) {
       contentRef.current.innerHTML = formData.content || "";
@@ -125,7 +192,7 @@ export default function EditArticleClient({
         metaTitle: isMetaTitleCustomized
           ? prev.metaTitle
           : `${value} | ARIAD Psychological Services`,
-        canonicalUrl: `https://ariad-sooty.vercel.app/blog/${newSlug}`,
+        canonicalUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/blog/view${newSlug}`,
       }));
     }
 
@@ -239,16 +306,14 @@ export default function EditArticleClient({
       }
     } catch {}
 
-    // Detect current line height
     let detectedLineHeight = "1.6";
     const anchorBlock = getBlockElement(selection.anchorNode, editor);
     if (anchorBlock) {
       const computed = window.getComputedStyle(anchorBlock).lineHeight;
-      // Convert "normal" or px to our scale
       if (computed === "normal") detectedLineHeight = "1.6";
       else if (computed.endsWith("px")) {
         const px = parseFloat(computed);
-        detectedLineHeight = (px / 16).toFixed(1); // rough conversion
+        detectedLineHeight = (px / 16).toFixed(1);
       } else {
         detectedLineHeight = parseFloat(computed).toFixed(1);
       }
@@ -361,7 +426,6 @@ export default function EditArticleClient({
       return null;
     };
 
-    // No selection → apply to all blocks
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
       const walker = document.createTreeWalker(
         editor,
@@ -386,13 +450,11 @@ export default function EditArticleClient({
     const range = sel.getRangeAt(0);
     const affected = new Set<HTMLElement>();
 
-    // Anchor and focus blocks
     const ab = getBlock(sel.anchorNode);
     if (ab) affected.add(ab);
     const fb = getBlock(sel.focusNode);
     if (fb) affected.add(fb);
 
-    // All blocks overlapping selection
     const walker = document.createTreeWalker(editor, NodeFilter.SHOW_ELEMENT, {
       acceptNode: (n) => {
         if (!BLOCK.test((n as Element).tagName)) return NodeFilter.FILTER_SKIP;
@@ -622,14 +684,13 @@ export default function EditArticleClient({
           formData.metaDescription || formData.excerpt.slice(0, 155),
         canonical_url:
           formData.canonicalUrl ||
-          `https://ariad-web.netlify.app/blog/${formData.slug}`,
+          `${process.env.NEXT_PUBLIC_SITE_URL}/blog/view/${formData.slug}`,
         structured_data: formData.structuredData
           ? JSON.parse(formData.structuredData)
           : null,
         updated_at: new Date().toISOString(),
       };
 
-      // TO THIS:
       const res = await fetch(`/api/articles?id=${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -710,7 +771,6 @@ export default function EditArticleClient({
             </div>
 
             <div className="space-y-6">
-              {/* Title, Slug, Category, Image, Excerpt fields remain unchanged */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
                   Article Title <span className="text-red-500">*</span>
@@ -801,7 +861,6 @@ export default function EditArticleClient({
                   Content <span className="text-red-500">*</span>
                 </label>
 
-                {/* Toolbar */}
                 <div className="sticky top-0 z-20 flex flex-wrap items-center gap-2 p-3 mb-3 bg-slate-100 rounded-xl border border-slate-200 shadow-sm">
                   <div className="flex gap-1 pr-3 border-r border-slate-300">
                     <button
@@ -830,7 +889,6 @@ export default function EditArticleClient({
                     </button>
                   </div>
 
-                  {/* Font Size */}
                   <div className="flex items-center gap-1 pr-3 border-r border-slate-300">
                     <select
                       value={currentFontSize}
@@ -845,7 +903,6 @@ export default function EditArticleClient({
                     </select>
                   </div>
 
-                  {/* Line Height - FIXED */}
                   <div className="flex items-center gap-1 pr-3 border-r border-slate-300">
                     <select
                       value={currentLineHeight}
@@ -861,7 +918,6 @@ export default function EditArticleClient({
                     </select>
                   </div>
 
-                  {/* Color / Highlight */}
                   <div className="flex gap-1 pr-3 border-r border-slate-300">
                     <label
                       className="cursor-pointer p-2 hover:bg-white rounded-lg"
@@ -896,7 +952,6 @@ export default function EditArticleClient({
                     </label>
                   </div>
 
-                  {/* Formatting buttons */}
                   <div className="flex flex-wrap gap-1">
                     {toolbarButtons.map((btn) => {
                       const isActive = btn.key
@@ -973,6 +1028,42 @@ export default function EditArticleClient({
                 className="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none"
               />
             </div>
+          </div>
+
+          {/* Structured Data Section */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Edit3 size={20} />
+                Structured Data (Schema.org)
+              </h2>
+              <button
+                type="button"
+                onClick={resetToAutoStructured}
+                className="text-sm text-[#067F76] hover:underline flex items-center gap-1"
+              >
+                Reset to Auto-generated
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-600 mb-4">
+              Auto-generated based on title & excerpt. You can edit it manually
+              below.
+            </p>
+
+            <textarea
+              ref={structuredDataRef}
+              value={formData.structuredData}
+              onChange={handleStructuredDataChange}
+              className="w-full h-80 font-mono text-sm p-4 bg-slate-900 text-slate-100 rounded-2xl border border-slate-700 outline-none focus:border-[#067F76] resize-y"
+              spellCheck={false}
+            />
+
+            {formData.structuredData && (
+              <div className="mt-3 text-xs text-emerald-600 font-medium">
+                ✓ Valid JSON • Ready for Google Rich Results
+              </div>
+            )}
           </div>
 
           {error && (

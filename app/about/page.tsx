@@ -1,19 +1,19 @@
 // app/about/page.tsx
 import { Metadata } from "next";
-import AboutUs from "./AboutUs";   // ← Your client component
+import AboutUs from "./AboutUs"; // ← Your client component
 
 export const metadata: Metadata = {
   title: "About Us | Meet Our Team | ARIAD Psychological Services",
   description:
     "Meet the dedicated clinicians at ARIAD Psychological Services in Dallas and Houston, Texas. Learn about our experienced team providing compassionate psychological and neuropsychological assessments.",
   alternates: {
-    canonical: "https://ariadpsychservices.com/about",
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/about`,
   },
   openGraph: {
     title: "About Our Team | ARIAD Psychological Services",
     description:
       "Expert psychologists and psychometrists in Dallas & Houston offering evidence-based ADHD, autism, and psychoeducational evaluations.",
-    url: "https://ariadpsychservices.com/about",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/about`,
     type: "website",
     images: [
       {
@@ -45,7 +45,7 @@ export default function AboutPage() {
     name: "About ARIAD Psychological Services",
     description:
       "Meet our clinical team in Dallas and Houston, Texas. Dedicated to providing compassionate, evidence-based psychological and neuropsychological assessments.",
-    url: "https://ariadpsychservices.com/about",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/about`,
     mainEntity: {
       "@type": "MedicalBusiness",
       name: "ARIAD Psychological Services, PLLC",

@@ -28,6 +28,7 @@ import {
   Trash2,
   Palette,
   Highlighter,
+  Edit3,
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -60,10 +61,13 @@ export default function CreateArticlePage() {
   const [isSlugCustomized, setIsSlugCustomized] = useState(false);
   const [isMetaTitleCustomized, setIsMetaTitleCustomized] = useState(false);
   const [isMetaDescCustomized, setIsMetaDescCustomized] = useState(false);
+  const [isStructuredDataCustomized, setIsStructuredDataCustomized] =
+    useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ogInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const structuredDataRef = useRef<HTMLTextAreaElement>(null);
 
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
   const [currentFontSize, setCurrentFontSize] = useState("16");
@@ -90,6 +94,69 @@ export default function CreateArticlePage() {
       .replace(/-+/g, "-");
   };
 
+  // ==================== STRUCTURED DATA AUTO-GENERATION ====================
+  const generateStructuredData = (data: typeof formData): string => {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const articleUrl =
+      data.canonicalUrl ||
+      `${baseUrl}/blog/view/${data.slug || generateSlug(data.title)}`;
+
+    const structured = {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      url: articleUrl,
+      headline: data.title || "Untitled Article",
+      description: data.excerpt || data.metaDescription || "",
+      datePublished: new Date().toISOString(),
+      dateModified: new Date().toISOString(),
+      author: {
+        "@type": "Organization",
+        name: "ARIAD Psychological Services",
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "ARIAD Psychological Services",
+        logo: {
+          "@type": "ImageObject",
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`,
+        },
+      },
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": articleUrl,
+      },
+    };
+
+    return JSON.stringify(structured, null, 2);
+  };
+
+  // Auto-update structured data
+  useEffect(() => {
+    if (!isStructuredDataCustomized && (formData.title || formData.excerpt)) {
+      const newStructured = generateStructuredData(formData);
+      setFormData((prev) => ({ ...prev, structuredData: newStructured }));
+    }
+  }, [
+    formData.title,
+    formData.excerpt,
+    formData.slug,
+    formData.canonicalUrl,
+    isStructuredDataCustomized,
+  ]);
+
+  const handleStructuredDataChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    setIsStructuredDataCustomized(true);
+    setFormData((prev) => ({ ...prev, structuredData: e.target.value }));
+  };
+
+  const resetToAutoStructured = () => {
+    setIsStructuredDataCustomized(false);
+    const autoData = generateStructuredData(formData);
+    setFormData((prev) => ({ ...prev, structuredData: autoData }));
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -104,7 +171,7 @@ export default function CreateArticlePage() {
         metaTitle: isMetaTitleCustomized
           ? prev.metaTitle
           : `${value} | ARIAD Psychological Services`,
-        canonicalUrl: `https://ariad-sooty.vercel.app/blog/${newSlug}`,
+        canonicalUrl: `${process.env.NEXT_PUBLIC_SITE_URL}blog/view/${newSlug}`,
       }));
     }
 
@@ -165,7 +232,6 @@ export default function CreateArticlePage() {
   };
 
   // ---------- RICH TEXT EDITOR LOGIC ----------
-
   const escapeHtml = (str: string) =>
     str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -235,7 +301,6 @@ export default function CreateArticlePage() {
       }
     } catch {}
 
-    // Detect current line height
     let detectedLineHeight = "1.6";
     const anchorBlock = getBlockElement(selection.anchorNode, editor);
     if (anchorBlock) {
@@ -345,7 +410,6 @@ export default function CreateArticlePage() {
       return null;
     };
 
-    // No selection → apply to all blocks
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
       const walker = document.createTreeWalker(
         editor,
@@ -768,7 +832,6 @@ export default function CreateArticlePage() {
                   Content <span className="text-red-500">*</span>
                 </label>
 
-                {/* Enhanced Toolbar */}
                 <div className="sticky top-0 z-20 flex flex-wrap items-center gap-2 p-3 mb-3 bg-slate-100 rounded-xl border border-slate-200 shadow-sm">
                   <div className="flex gap-1 pr-3 border-r border-slate-300">
                     <button
@@ -797,7 +860,6 @@ export default function CreateArticlePage() {
                     </button>
                   </div>
 
-                  {/* Font Size */}
                   <div className="flex items-center gap-1 pr-3 border-r border-slate-300">
                     <select
                       value={currentFontSize}
@@ -812,7 +874,6 @@ export default function CreateArticlePage() {
                     </select>
                   </div>
 
-                  {/* Line Height - Now Fixed */}
                   <div className="flex items-center gap-1 pr-3 border-r border-slate-300">
                     <select
                       value={currentLineHeight}
@@ -828,7 +889,6 @@ export default function CreateArticlePage() {
                     </select>
                   </div>
 
-                  {/* Color / Highlight */}
                   <div className="flex gap-1 pr-3 border-r border-slate-300">
                     <label
                       className="cursor-pointer p-2 hover:bg-white rounded-lg"
@@ -863,7 +923,6 @@ export default function CreateArticlePage() {
                     </label>
                   </div>
 
-                  {/* Formatting buttons */}
                   <div className="flex flex-wrap gap-1">
                     {toolbarButtons.map((btn) => {
                       const isActive = btn.key
@@ -940,6 +999,41 @@ export default function CreateArticlePage() {
                 className="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none"
               />
             </div>
+          </div>
+
+          {/* Structured Data Section */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Edit3 size={20} />
+                Structured Data (Schema.org)
+              </h2>
+              <button
+                type="button"
+                onClick={resetToAutoStructured}
+                className="text-sm text-[#067F76] hover:underline flex items-center gap-1"
+              >
+                Reset to Auto-generated
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-600 mb-4">
+              Auto-generated based on title & excerpt. Edit manually if needed.
+            </p>
+
+            <textarea
+              ref={structuredDataRef}
+              value={formData.structuredData}
+              onChange={handleStructuredDataChange}
+              className="w-full h-80 font-mono text-sm p-4 bg-slate-900 text-slate-100 rounded-2xl border border-slate-700 outline-none focus:border-[#067F76] resize-y"
+              spellCheck={false}
+            />
+
+            {formData.structuredData && (
+              <div className="mt-3 text-xs text-emerald-600 font-medium">
+                ✓ Valid JSON • Ready for Google Rich Results
+              </div>
+            )}
           </div>
 
           {error && (

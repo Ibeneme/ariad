@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description:
     "Expert articles on ADHD, autism, parenting, neurodiversity, and psychological wellness from the clinicians at ARIAD Psychological Services in Dallas & Houston.",
   alternates: {
-    canonical: "https://ariad-sooty.vercel.app/blog",
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/blog`,
   },
   openGraph: {
     title: "ARIAD Psychological Blog — Thoughtful Insights",
     description:
       "Clinical wisdom, parenting tips, and neurodiversity-affirming guidance.",
-    url: "https://ariad-sooty.vercel.app/blog",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/blog`,
     type: "website",
   },
   keywords: [

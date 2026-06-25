@@ -7,13 +7,13 @@ export const metadata: Metadata = {
   description:
     "Request a confidential intake consultation for ADHD, Autism (ASD), psychoeducational, or neuropsychological assessments in Texas and Arizona.",
   alternates: {
-    canonical: "https://ariad-sooty.vercel.app/contact",
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/contact`,
   },
   openGraph: {
     title: "Schedule a Psychological Consultation | ARIAD Psychological",
     description:
       "Connect with our clinical coordination team to verify insurance and schedule testing implementations.",
-    url: "https://ariad-sooty.vercel.app/contact",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/contact`,
     type: "website",
   },
 };
@@ -25,7 +25,7 @@ export default function ConsultationPage() {
     name: "ARIAD Psychological Services Consultation Request",
     description:
       "Secure administrative submission form to initiate intake evaluation across Texas and Arizona hub networks.",
-    url: "https://ariad-sooty.vercel.app/contact",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/contact`,
   };
 
   return (
