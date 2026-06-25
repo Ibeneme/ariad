@@ -1,4 +1,5 @@
-// app/admin/edit/[id]/page.tsx
+// app/blog/view/[id]/page.tsx
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import EditArticleClient from "./EditArticleClient";
 import { getAllArticles, getArticleById } from "@/app/api/articles/route";
@@ -7,26 +8,146 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-export default async function EditArticlePage({ params }: Props) {
+const SITE_URL = "https://ariad-sooty.vercel.app";
+const SITE_NAME = "ARIAD Psychological Services";
+const TWITTER_HANDLE = "@ariadpsych";
+
+function stripHtml(html: string = ""): string {
+  return html.replace(/<[^>]*>/g, "").trim();
+}
+
+export async function generateStaticParams() {
+  const posts = await getAllArticles();
+  return posts.map((post: any) => ({
+    id: post.id,
+  }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
+  const post = await getArticleById(id);
 
-  // Primary fetch
-  let article = await getArticleById(id);
-
-  // Fallback: search in all articles
-  if (!article) {
-    const allArticles = await getAllArticles();
-    
-    // Fix: Use type assertion to avoid strict Mongoose Document conflict
-    article = allArticles.find((a: any) => a?._id?.toString() === id) as any;
+  if (!post) {
+    return {
+      title: "Article Not Found | " + SITE_NAME,
+      robots: { index: false, follow: false },
+    };
   }
 
-  if (!article) {
+  const url = post.canonical_url || `${SITE_URL}/blog/view/${id}`;
+  const title = post.meta_title || post.title;
+  const description =
+    post.meta_description ||
+    post.excerpt ||
+    stripHtml(post.content).slice(0, 160);
+
+  const image =
+    post.og_image_url || post.image_url || `${SITE_URL}/default-og.jpg`;
+
+  const publishedTime = post.created_at;
+  const modifiedTime = post.created_at;
+
+  return {
+    title,
+    description,
+    keywords: post.category ? [post.category] : undefined,
+    alternates: {
+      canonical: url,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    openGraph: {
+      type: "article",
+      url,
+      siteName: SITE_NAME,
+      title,
+      description,
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+
+      section: post.category,
+      locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      site: TWITTER_HANDLE,
+      title,
+      description,
+      images: [image],
+    },
+    other: {
+      "article:section": post.category || "",
+    },
+  };
+}
+
+export default async function BlogPostPage({ params }: Props) {
+  const { id } = await params;
+  let post = await getArticleById(id);
+
+  if (!post) {
     notFound();
   }
 
-  // Safe plain object conversion
-  const plainArticle = JSON.parse(JSON.stringify(article));
+  // 🔥 CRITICAL FIX: Convert Mongoose document to plain object
+  const plainPost = JSON.parse(JSON.stringify(post));
 
-  return <EditArticleClient article={plainArticle} id={id} />;
+  const url = plainPost.canonical_url || `${SITE_URL}/blog/view/${id}`;
+  const image =
+    plainPost.og_image_url ||
+    plainPost.image_url ||
+    `${SITE_URL}/default-og.jpg`;
+  const description =
+    plainPost.meta_description ||
+    plainPost.excerpt ||
+    stripHtml(plainPost.content).slice(0, 160);
+
+  // Always build JSON-LD fresh
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "MedicalWebPage",
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    headline: plainPost.title,
+    description,
+    image: [image],
+    datePublished: plainPost.created_at,
+    dateModified: plainPost.updated_at || plainPost.created_at,
+    articleSection: plainPost.category,
+    publisher: {
+      "@type": "MedicalOrganization",
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/logo.png`,
+      },
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <EditArticleClient article={plainPost} id={id} />;
+    </>
+  );
 }
