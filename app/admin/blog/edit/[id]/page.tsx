@@ -10,20 +10,22 @@ type Props = {
 export default async function EditArticlePage({ params }: Props) {
   const { id } = await params;
 
-  // Primary: Get by ID (fastest)
+  // Primary fetch
   let article = await getArticleById(id);
 
-  // Fallback: Get all articles and find by ID (in case getArticleById has issues)
+  // Fallback: search in all articles
   if (!article) {
     const allArticles = await getAllArticles();
-    article = allArticles.find((a: any) => a._id.toString() === id);
+    
+    // Fix: Use type assertion to avoid strict Mongoose Document conflict
+    article = allArticles.find((a: any) => a?._id?.toString() === id) as any;
   }
 
   if (!article) {
     notFound();
   }
 
-  // Convert Mongoose document to plain object
+  // Safe plain object conversion
   const plainArticle = JSON.parse(JSON.stringify(article));
 
   return <EditArticleClient article={plainArticle} id={id} />;

@@ -83,10 +83,31 @@ export async function getArticleBySlug(slug: string) {
 
 
 // Add this function
+// app/api/articles/route.ts
+
 export async function getArticleById(id: string) {
-    // Your existing logic (Mongoose or Supabase)
-    const article = await Article.findById(id); // or Supabase equivalent
-    return article;
+    try {
+        if (!id) return null;
+
+        await connectDB();
+
+        // Primary lookup by ID
+        let article = await Article.findById(id).lean();
+
+        // Optional fallback: try by slug if ID lookup fails (for robustness)
+        if (!article) {
+            article = await Article.findOne({
+                slug: { $regex: new RegExp(`^${id}$`, 'i') }
+            }).lean();
+        }
+
+        console.log("✅ getArticleById result:", article ? article.title : "Not found");
+
+        return article; // Returns null or plain object
+    } catch (error: any) {
+        console.error("❌ getArticleById error:", error);
+        return null;
+    }
 }
 
 // Optional: Get all articles for listing / generateStaticParams
