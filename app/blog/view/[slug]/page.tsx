@@ -7,7 +7,7 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-const SITE_URL = "https://ariad-sooty.vercel.app";
+const SITE_URL = "https://ariad-sooty.vercel.apps";
 const SITE_NAME = "ARIAD Psychological Services";
 const TWITTER_HANDLE = "@ariadpsych";
 
