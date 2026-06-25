@@ -39,23 +39,23 @@ export async function GET(
 }
 
 // Re-export for use in Server Components (public blog page)
-// lib/articles.ts
 export async function getArticleBySlug(slug: string) {
-  // 1. Log the input to ensure the slug is being passed correctly
-  console.log("Fetching article for slug:", slug);
+    try {
+        await connectDB();
 
-  // Example for MongoDB
-  const article = await db.collection('articles').findOne({ slug });
-  
-  // 2. Log the raw result from the database
-  console.log("Database result:", article);
+        let post = await Article.findOne({ slug }).lean();
 
-  // 3. Optional: Add a check if the article is null
-  if (!article) {
-    console.warn(`No article found for slug: ${slug}`);
-  }
+        if (!post) {
+            post = await Article.findOne({
+                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
+            }).lean();
+        }
 
-  return article;
+        return post ? JSON.parse(JSON.stringify(post)) : null;
+    } catch (error: any) {
+        console.error("❌ getArticleBySlug error:", error.message);
+        return null;
+    }
 }
 
 export async function PUT(
