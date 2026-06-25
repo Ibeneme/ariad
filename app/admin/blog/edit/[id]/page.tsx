@@ -669,7 +669,8 @@ export default function EditArticlePage({
         updated_at: new Date().toISOString(),
       };
 
-      const res = await fetch(`/api/articles/${id}`, {
+      // TO THIS:
+      const res = await fetch(`/api/articles/by-id/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(articleData),

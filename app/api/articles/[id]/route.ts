@@ -1,4 +1,8 @@
 // app/api/articles/[id]/route.ts
+// NOTE: despite the folder being named [id], this route is effectively slug-based
+// (kept as-is for the public blog page, which calls getArticleBySlug).
+// For admin edit-by-_id lookups, use /api/articles/by-id/[id] instead.
+
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Article from '@/lib/models/Article';
@@ -7,34 +11,17 @@ export async function GET(
     req: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    console.log("🚀 [API GET Article] Request received");
-    console.log("📍 Params received:", params);
-
     try {
-        const { id } = await params;
-        console.log("🔑 Extracted param (id/slug):", id);
-        console.log("📏 Length of id:", id.length);
+        const { id: slug } = await params;
 
         await connectDB();
-        console.log("✅ MongoDB connected successfully");
 
-        let article;
+        let article = await Article.findOne({ slug }).lean();
 
-        if (id.length > 15) {
-            console.log("🔍 Looking up by SLUG:", id);
-            article = await Article.findOne({ slug: id }).lean();
-        } else {
-            console.log("🔍 Looking up by ID:", id);
-            article = await Article.findById(id).lean();
-        }
-
-        console.log("📊 Article found?", !!article);
-
-        if (article) {
-            console.log("✅ Article title:", article.title);
-            console.log("✅ Article slug:", article.slug);
-        } else {
-            console.log("❌ No article found for:", id);
+        if (!article) {
+            article = await Article.findOne({
+                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
+            }).lean();
         }
 
         if (!article) {
@@ -44,7 +31,6 @@ export async function GET(
         return NextResponse.json(article);
     } catch (error: any) {
         console.error("❌ GET article error:", error);
-        console.error("❌ Error stack:", error.stack);
         return NextResponse.json({
             error: "Failed to fetch article",
             details: error.message
@@ -52,36 +38,25 @@ export async function GET(
     }
 }
 
-// Re-export for use in Server Components
+// Re-export for use in Server Components (public blog page)
 export async function getArticleBySlug(slug: string) {
-    console.log("🔄 [getArticleBySlug] Called with slug:", slug);
-  
     try {
-      await connectDB();
-      console.log("✅ MongoDB connected");
-  
-      // Try multiple ways to find the article
-      let post = await Article.findOne({ slug }).lean();
-  
-      if (!post) {
-        console.log("⚠️ Not found by exact slug, trying case-insensitive...");
-        post = await Article.findOne({ 
-          slug: { $regex: new RegExp(`^${slug}$`, 'i') } 
-        }).lean();
-      }
-  
-      console.log("📊 Post found?", !!post);
-      if (post) {
-        console.log("✅ Title:", post.title);
-        console.log("✅ Slug in DB:", post.slug);
-      }
-  
-      return post ? JSON.parse(JSON.stringify(post)) : null;
+        await connectDB();
+
+        let post = await Article.findOne({ slug }).lean();
+
+        if (!post) {
+            post = await Article.findOne({
+                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
+            }).lean();
+        }
+
+        return post ? JSON.parse(JSON.stringify(post)) : null;
     } catch (error: any) {
-      console.error("❌ getArticleBySlug error:", error.message);
-      return null;
+        console.error("❌ getArticleBySlug error:", error.message);
+        return null;
     }
-  }
+}
 
 export async function PUT(
     req: Request,
