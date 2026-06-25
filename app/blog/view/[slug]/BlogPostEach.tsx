@@ -2,11 +2,12 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Calendar, Clock, User, ArrowLeft, Share2 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
+import useSWR from "swr";
 
 const heroBgFallback =
   "https://images.unsplash.com/photo-1600427652630-f97cc4db10cd?q=80&w=2070&auto=format&fit=crop";
@@ -30,6 +31,13 @@ interface BlogPostClientProps {
   slug: string;
   initialPost: any;
 }
+
+// ── Fetcher ───────────────────────────────────────────────────────────────────
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatArticle(data: any): BlogPost {
@@ -79,84 +87,55 @@ export default function BlogPostEach({
   console.log("📌 Props received - Slug:", slug);
   console.log("📦 Initial Post received:", initialPost ? "YES" : "NO");
 
-  const [post, setPost] = useState<BlogPost | null>(
-    initialPost ? formatArticle(initialPost) : null
-  );
-  console.log("📊 Initial post state set:", post ? "YES" : "NO");
-
-  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(!initialPost);
   const [shareSuccess, setShareSuccess] = useState(false);
   const relatedFetched = useRef(false);
 
-  console.log("⚙️ Initial loading state:", loading);
+  // SWR for main article (with initialPost as fallback)
+  const { data: rawPost, error } = useSWR(
+    `/api/articles/slug/${slug}`,
+    fetcher,
+    {
+      fallbackData: initialPost,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+    }
+  );
 
-  useEffect(() => {
-    console.log(
-      "🔄 useEffect triggered - Slug:",
-      slug,
-      "InitialPost:",
-      !!initialPost
-    );
+  const post = rawPost ? formatArticle(rawPost) : null;
 
-    const fetchData = async () => {
-      console.log("🌐 fetchData started");
-      setLoading(true);
-      console.log("⏳ Loading set to true");
+  // Related Posts (kept as separate fetch for simplicity, can be SWR too if needed)
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
 
+  // Fetch related posts once we have the main post
+  React.useEffect(() => {
+    if (!post || relatedFetched.current) return;
+
+    const fetchRelated = async () => {
       try {
-        let currentPost = initialPost;
-        console.log("📥 Using initialPost:", !!currentPost);
+        relatedFetched.current = true;
+        console.log("🔗 Fetching related posts...");
+        const res = await fetch(
+          `/api/articles?category=${post.category}&exclude=${slug}`
+        );
 
-        if (!currentPost) {
-          console.log("🔍 Fetching post from API for slug:", slug);
-          const res = await fetch(`/api/articles/slug/${slug}`);
-          console.log("📡 API response status:", res.status, res.ok);
+        const relatedData = await res.json();
+        console.log(
+          "📊 Related data received count:",
+          relatedData?.length || 0
+        );
 
-          if (res.ok) {
-            currentPost = await res.json();
-            console.log("✅ Fetched post from API:", currentPost?.title);
-          } else {
-            console.log("❌ API fetch failed");
-          }
-        }
-
-        if (currentPost) {
-          const formatted = formatArticle(currentPost);
-          setPost(formatted);
-          console.log("✅ Post state updated via setPost");
-        }
-
-        if (currentPost && !relatedFetched.current) {
-          console.log("🔗 Fetching related posts...");
-          relatedFetched.current = true;
-          const res = await fetch(
-            `/api/articles?category=${currentPost.category}&exclude=${slug}`
-          );
-          console.log("📡 Related posts API status:", res.status);
-
-          const relatedData = await res.json();
-          console.log(
-            "📊 Related data received count:",
-            relatedData?.length || 0
-          );
-
-          if (Array.isArray(relatedData)) {
-            const formattedRelated = relatedData.slice(0, 3).map(formatArticle);
-            setRelatedPosts(formattedRelated);
-            console.log("✅ Related posts set:", formattedRelated.length);
-          }
+        if (Array.isArray(relatedData)) {
+          const formattedRelated = relatedData.slice(0, 3).map(formatArticle);
+          setRelatedPosts(formattedRelated);
+          console.log("✅ Related posts set:", formattedRelated.length);
         }
       } catch (err) {
-        console.error("❌ Error fetching data:", err);
-      } finally {
-        setLoading(false);
-        console.log("⏹️ Loading set to false");
+        console.error("❌ Error fetching related posts:", err);
       }
     };
 
-    fetchData();
-  }, [slug, initialPost]);
+    fetchRelated();
+  }, [post, slug]);
 
   const handleShare = async () => {
     console.log("🔗 handleShare clicked");
@@ -186,24 +165,23 @@ export default function BlogPostEach({
   };
 
   console.log(
-    "🎨 Rendering BlogPostEach - Loading:",
-    loading,
-    "Post exists:",
-    !!post
+    "🎨 Rendering BlogPostEach - Post exists:",
+    !!post,
+    "Error:",
+    !!error
   );
 
-  if (loading) {
-    console.log("🟡 Showing ArticleSkeleton");
-    return <ArticleSkeleton />;
+  if (error && !post) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Failed to load article. Please try again later.
+      </div>
+    );
   }
 
   if (!post) {
-    console.log("❌ No post found - Showing Not Found");
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Article Not Found
-      </div>
-    );
+    console.log("🟡 Showing ArticleSkeleton");
+    return <ArticleSkeleton />;
   }
 
   const sanitizedContent = DOMPurify.sanitize(post.content, {

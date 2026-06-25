@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { mutate } from "swr";
 
 export default function CreateArticlePage() {
   const router = useRouter();
@@ -674,6 +675,9 @@ export default function CreateArticlePage() {
       if (!res.ok) {
         throw new Error(result.error || "Failed to create article");
       }
+
+      // === SWR MUTATE: Make updates swift on dashboard & blog pages ===
+      mutate("/api/articles");
 
       setSuccess("Article published successfully!");
       setTimeout(() => {

@@ -1,13 +1,13 @@
 "use client";
-export const dynamic = 'force-dynamic';
-export const dynamicParams = true
+export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 
 const heroBg =
   "https://images.unsplash.com/photo-1600427652630-f97cc4db10cd?q=80&w=2070&auto=format&fit=crop";
@@ -45,12 +45,49 @@ interface BlogPost {
   author?: string;
 }
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch");
+  const data = await res.json();
+  return data;
+};
+
 export default function BlogClient() {
-  const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
   const [migrating, setMigrating] = useState(false);
   const [migrationResult, setMigrationResult] = useState<string | null>(null);
+  const router = useRouter();
+
+  const {
+    data: rawPosts,
+    error,
+    isLoading: loading,
+  } = useSWR("/api/articles", fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  });
+
+  const allPosts: BlogPost[] = rawPosts
+    ? rawPosts.map((article: any) => {
+        const words =
+          article.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
+
+        return {
+          id: article._id,
+          slug: article.slug,
+          title: article.title,
+          excerpt: article.excerpt,
+          category: article.category || "General",
+          date: new Date(article.created_at).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          readTime: Math.max(1, Math.ceil(words / 200)) + " min read",
+          image: article.image_url || heroBg,
+          author: article.author || "ARIAD Team",
+        };
+      })
+    : [];
 
   const migrateArticles = async () => {
     if (
@@ -86,51 +123,6 @@ export default function BlogClient() {
     }
   };
 
-  const fetchArticles = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/articles");
-
-      if (!res.ok) throw new Error("Failed to fetch");
-
-      const data = await res.json();
-
-      if (data && data.length > 0) {
-        const formattedPosts: BlogPost[] = data.map((article: any) => {
-          const words =
-            article.content?.replace(/<[^>]*>/g, "").split(/\s+/).length || 0;
-
-          return {
-            id: article._id, // MongoDB uses _id
-            slug: article.slug,
-            title: article.title,
-            excerpt: article.excerpt,
-            category: article.category || "General",
-            date: new Date(article.created_at).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }),
-            readTime: Math.max(1, Math.ceil(words / 200)) + " min read",
-            image: article.image_url || heroBg,
-            author: article.author || "ARIAD Team",
-          };
-        });
-
-        setAllPosts(formattedPosts);
-      }
-    } catch (err) {
-      console.error("🚨 Error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    console.log("🚀 [BlogClient] useEffect triggered - fetching articles");
-    fetchArticles();
-  }, []);
-
   return (
     <div className="bg-[#FAF8F5] min-h-screen">
       {/* Hero Section */}
@@ -162,6 +154,7 @@ export default function BlogClient() {
       {migrationResult && (
         <p className="text-sm text-slate-600 mt-2">{migrationResult}</p>
       )}
+
       {/* Posts Section */}
       <section id="posts" className="max-w-7xl mx-auto px-6 py-20">
         <div className="flex justify-between items-end mb-12">
@@ -174,6 +167,12 @@ export default function BlogClient() {
               <SkeletonCard key={i} />
             ))}
           </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500">
+              Failed to load articles. Please try again later.
+            </p>
+          </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {allPosts.map((post, idx) => (
@@ -182,7 +181,7 @@ export default function BlogClient() {
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="group bg-white rounded-3xl overflow-hidden  hover:shadow-xl transition-all"
+                className="group bg-white rounded-3xl overflow-hidden hover:shadow-xl transition-all"
               >
                 <div className="relative h-64 overflow-hidden">
                   <Image

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Calendar,
@@ -13,6 +13,7 @@ import {
   Search,
 } from "lucide-react";
 import Image from "next/image";
+import useSWR, { mutate } from "swr";
 
 type BlogPost = {
   _id?: string;
@@ -25,16 +26,40 @@ type BlogPost = {
   read_time?: string;
 };
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url, {
+    method: "GET",
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+    },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+};
+
 export default function BlogDashboardClient() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<BlogPost | null>(null);
-  const [fetchError, setFetchError] = useState<string>("");
 
   const router = useRouter();
+
+  const {
+    data: posts = [],
+    error: fetchError,
+    isLoading: loading,
+  } = useSWR<BlogPost[]>("/api/articles", fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 60000,
+  });
 
   const filteredPosts = useMemo(() => {
     if (!searchQuery) return posts;
@@ -45,37 +70,6 @@ export default function BlogDashboardClient() {
         post.category.toLowerCase().includes(q)
     );
   }, [posts, searchQuery]);
-
-  const fetchPosts = async () => {
-    setLoading(true);
-    setFetchError("");
-    try {
-      const res = await fetch("/api/articles", {
-        method: "GET",
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${res.status}`);
-      }
-
-      const data: BlogPost[] = await res.json();
-      setPosts(data);
-    } catch (error: any) {
-      console.error("Fetch error:", error);
-      setFetchError(error.message || "Failed to load articles");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
 
   const handleDeleteClick = (post: BlogPost) => {
     setPostToDelete(post);
@@ -92,10 +86,9 @@ export default function BlogDashboardClient() {
       const adminToken = localStorage.getItem("adminToken");
 
       const res = await fetch(`/api/articles?id=${postId}`, {
-        method: "DELETE", // Changed from PUT to DELETE
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          // Include auth if your API is protected
           Authorization: `Bearer ${adminToken}`,
         },
       });
@@ -105,8 +98,8 @@ export default function BlogDashboardClient() {
         throw new Error(errorData.message || "Failed to delete the post.");
       }
 
-      // Optimistic update: Remove from state only if server call succeeded
-      setPosts((prev) => prev.filter((p) => p._id !== postId));
+      // Revalidate SWR cache after successful delete
+      mutate("/api/articles");
 
       setShowDeleteModal(false);
       setPostToDelete(null);
@@ -157,9 +150,9 @@ export default function BlogDashboardClient() {
         {/* Error */}
         {fetchError && (
           <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center justify-between">
-            <span>{fetchError}</span>
+            <span>{fetchError.message || "Failed to load articles"}</span>
             <button
-              onClick={fetchPosts}
+              onClick={() => mutate("/api/articles")}
               className="text-sm underline hover:no-underline font-medium"
             >
               Retry
@@ -189,10 +182,7 @@ export default function BlogDashboardClient() {
                     key={post._id}
                     post={post}
                     isLoading={false}
-                    onEdit={() => {
-                      console.warn("kkk"),
-                      router.push(`/admin/blog/edit/${post._id}`);
-                    }}
+                    onEdit={() => router.push(`/admin/blog/edit/${post._id}`)}
                     onDelete={() => handleDeleteClick(post)}
                     onView={() =>
                       router.push(`/blog/view/${post.slug || post._id}`)
