@@ -81,6 +81,14 @@ export async function getArticleBySlug(slug: string) {
     }
 }
 
+
+// Add this function
+export async function getArticleById(id: string) {
+    // Your existing logic (Mongoose or Supabase)
+    const article = await Article.findById(id); // or Supabase equivalent
+    return article;
+}
+
 // Optional: Get all articles for listing / generateStaticParams
 export async function getAllArticles() {
     try {
