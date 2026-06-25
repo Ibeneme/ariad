@@ -1,10 +1,8 @@
-// app/blog/[slug]/page.tsx
+// app/blog/view/[slug]/page.tsx
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-
 import BlogPostEach from "./BlogPostEach";
-import { getArticleBySlug } from "@/app/api/articles/[id]/route";
-
+import { getArticleBySlug } from "@/app/api/articles/route"; // ← Fixed import
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -19,7 +17,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.meta_title || post.title,
     description: post.meta_description || post.excerpt,
-    // Add openGraph tags here for better social sharing
     openGraph: {
       images: [post.og_image_url || post.image_url],
     },
@@ -30,10 +27,7 @@ export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
   const post = await getArticleBySlug(slug);
 
-  if (!post) {
-    notFound();
-  }
+  if (!post) notFound();
 
-  // Passing 'post' as initialPost to your Client Component
   return <BlogPostEach slug={slug} initialPost={post} />;
 }

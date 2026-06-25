@@ -5,24 +5,25 @@ import Article from '@/lib/models/Article';
 
 export async function GET(
     req: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
+    { params }: { params: Promise<{ slug: string }> }
+  ) {
     try {
-        const { id } = await params;   // ← Important: Await the params Promise
-
-        await connectDB();
-        const article = await Article.findById(id);
-
-        if (!article) {
-            return NextResponse.json({ error: "Article not found" }, { status: 404 });
-        }
-        return NextResponse.json(article);
+      const { slug } = await params;
+      await connectDB();
+      
+      const article = await Article.findOne({ slug }).lean();
+  
+      if (!article) {
+        return NextResponse.json({ error: "Article not found" }, { status: 404 });
+      }
+  
+      return NextResponse.json(article);
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: "Failed to fetch article" }, { status: 500 });
+      console.error(error);
+      return NextResponse.json({ error: "Failed to fetch article" }, { status: 500 });
     }
-}
-
+  }
+  
 export async function getArticleBySlug(slug: string) {
     await connectDB();
     const post = await Article.findOne({ slug }).lean(); // .lean() makes it plain JSON

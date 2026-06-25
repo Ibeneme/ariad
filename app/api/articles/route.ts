@@ -66,3 +66,15 @@ export async function GET() {
         return NextResponse.json({ error: "Failed to fetch articles" }, { status: 500 });
     }
 }
+
+// app/api/articles/route.ts
+export async function getArticleBySlug(slug: string) {
+    try {
+        await connectDB();
+        const post = await Article.findOne({ slug }).lean();
+        return post ? JSON.parse(JSON.stringify(post)) : null;
+    } catch (error) {
+        console.error("getArticleBySlug error:", error);
+        return null;
+    }
+}

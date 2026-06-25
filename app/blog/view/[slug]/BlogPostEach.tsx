@@ -80,20 +80,26 @@ export default function BlogPostEach({
   const [shareSuccess, setShareSuccess] = useState(false);
   const relatedFetched = useRef(false);
 
+  // Inside useEffect in BlogPostEach
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         let currentPost = initialPost;
 
-        // 1. If no initialPost, fetch the main article
         if (!currentPost) {
-          const res = await fetch(`/api/articles/${slug}`);
-          currentPost = await res.json();
-          if (currentPost) setPost(formatArticle(currentPost));
+          // Use the proper slug endpoint
+          const res = await fetch(`/api/articles/slug/${slug}`);
+          if (res.ok) {
+            currentPost = await res.json();
+          }
         }
 
-        // 2. Fetch related posts
+        if (currentPost) {
+          setPost(formatArticle(currentPost));
+        }
+
+        // Related posts
         if (currentPost && !relatedFetched.current) {
           relatedFetched.current = true;
           const res = await fetch(
@@ -220,7 +226,10 @@ export default function BlogPostEach({
             {relatedPosts.map((rel) => (
               <div key={rel.id} className="bg-white rounded-3xl p-8 shadow-sm">
                 <h3 className="font-bold text-lg mb-3">{rel.title}</h3>
-                <Link href={`/blog/view/${rel.slug}`} className="text-[#067F76]">
+                <Link
+                  href={`/blog/view/${rel.slug}`}
+                  className="text-[#067F76]"
+                >
                   Read Article
                 </Link>
               </div>
