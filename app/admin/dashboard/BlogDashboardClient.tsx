@@ -94,14 +94,11 @@ export default function BlogDashboardClient() {
       //   throw new Error("Authentication required. Please log in again.");
       // }
 
-      const res = await fetch(`/api/articles/${postId}`, {
-        method: "DELETE",
+      const res = await fetch(`/api/articles?id=${postId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(postToDelete),
       });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to delete article");
-      }
 
       // Optimistic update
       setPosts((prev) => prev.filter((p) => p._id !== postId));

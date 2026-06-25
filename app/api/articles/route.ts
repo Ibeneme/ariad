@@ -147,29 +147,30 @@ const getIdFromUrl = (req: Request) => {
     return potentialId !== 'articles' ? potentialId : null;
 };
 
+
 export async function PUT(req: Request) {
-    const id = getIdFromUrl(req);
-
-    // LOG: Track incoming body to ensure data is reaching the server
-    if (!id) {
-        console.error("❌ PUT Error: Missing ID in URL");
-        return NextResponse.json({ error: "ID required" }, { status: 400 });
-    }
-
     try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: "ID required" }, { status: 400 });
+        }
+
         await connectDB();
         const data = await req.json();
-        console.log("📝 Updating article:", id, "with data:", Object.keys(data));
 
-        const updated = await Article.findByIdAndUpdate(id, { ...data, updated_at: new Date() }, { new: true });
+        const updated = await Article.findByIdAndUpdate(
+            id,
+            { ...data, updated_at: new Date() },
+            { new: true }
+        );
 
         if (!updated) {
-            console.warn("⚠️ Article not found for update:", id);
             return NextResponse.json({ error: "Not found" }, { status: 404 });
         }
 
-        console.log("✅ Article updated successfully");
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, article: updated });
     } catch (error: any) {
         console.error("❌ PUT Server Error:", error.message);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -177,25 +178,21 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const id = getIdFromUrl(req);
-
-    if (!id) {
-        console.error("❌ DELETE Error: Missing ID in URL");
-        return NextResponse.json({ error: "ID required" }, { status: 400 });
-    }
-
     try {
-        await connectDB();
-        console.log("🗑️ Attempting to delete article:", id);
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
 
+        if (!id) {
+            return NextResponse.json({ error: "ID required" }, { status: 400 });
+        }
+
+        await connectDB();
         const deleted = await Article.findByIdAndDelete(id);
 
         if (!deleted) {
-            console.warn("⚠️ Article not found for deletion:", id);
             return NextResponse.json({ error: "Not found" }, { status: 404 });
         }
 
-        console.log("✅ Article deleted successfully");
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error("❌ DELETE Server Error:", error.message);

@@ -630,7 +630,7 @@ export default function EditArticleClient({
       };
 
       // TO THIS:
-      const res = await fetch(`/api/articles/${id}`, {
+      const res = await fetch(`/api/articles?id=${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(articleData),
