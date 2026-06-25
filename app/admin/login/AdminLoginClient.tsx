@@ -35,18 +35,19 @@ export default function AdminLoginClient() {
     setError("");
     setSuccess("");
 
-    const endpoint =
-      mode === "login"
-        ? "/api/auth/signin"
-        : mode === "forgot"
-        ? "/api/auth/forgot-password"
-        : "/api/auth/reset-password";
-    const body =
-      mode === "login"
-        ? { email, password }
-        : mode === "forgot"
-        ? { email }
-        : { email, otp, newPassword };
+    const endpoint = "/api/auth"; // ← Single endpoint
+
+    const body = {
+      action:
+        mode === "login"
+          ? "signin"
+          : mode === "forgot"
+          ? "forgot-password"
+          : "reset-password",
+      ...(mode === "login" && { email, password }),
+      ...(mode === "forgot" && { email }),
+      ...(mode === "reset" && { email, otp, newPassword }),
+    };
 
     try {
       const res = await fetch(endpoint, {
@@ -55,7 +56,14 @@ export default function AdminLoginClient() {
         body: JSON.stringify(body),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text();
+        throw new Error(text || "Server error");
+      }
+
       if (!res.ok) throw new Error(data.error || "Authentication failed");
 
       if (mode === "login") {
@@ -77,16 +85,16 @@ export default function AdminLoginClient() {
   const deleteAllAdmins = async () => {
     if (!confirm("⚠️ This will delete ALL admins. Are you 100% sure?")) return;
 
-    const res = await fetch('/api/admin/delete-all', {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-        }
+    const res = await fetch("/api/admin/delete-all", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+      },
     });
 
     const data = await res.json();
     alert(data.message);
-};
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-6 py-12">
@@ -158,13 +166,13 @@ export default function AdminLoginClient() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
- <button
+                <button
                   type="button"
                   onClick={() => setMode("forgot")}
                   className="text-sm text-[#067F76] hover:text-teal-700 font-semibold transition-colors mt-2 block"
                 >
                   Forgot your password?
-                </button> 
+                </button>
                 {/**/}
               </div>
             )}
