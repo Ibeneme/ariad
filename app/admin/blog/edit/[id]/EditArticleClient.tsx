@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client"; // Updated import
-import { getArticleById } from "@/app/api/articles/route";
 
 export default function EditArticleClient({
   article,
@@ -126,7 +125,7 @@ export default function EditArticleClient({
         metaTitle: isMetaTitleCustomized
           ? prev.metaTitle
           : `${value} | ARIAD Psychological Services`,
-        canonicalUrl: `https://ariad-web.netlify.app/blog/${newSlug}`,
+        canonicalUrl: `https://ariad-sooty.vercel.app/blog/${newSlug}`,
       }));
     }
 

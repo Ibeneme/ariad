@@ -114,41 +114,70 @@ export async function GET() {
 
 
 
-
-
 const getIdFromUrl = (req: Request) => {
     const url = new URL(req.url);
     const parts = url.pathname.split('/');
-    // Assuming structure /api/articles/[id] or /api/articles?id=...
-    // This looks for the last segment if it looks like a MongoDB ID
     const potentialId = parts[parts.length - 1];
+
+    // LOG: See what the full URL and the extracted ID look like
+    console.log("🔍 URL Path:", url.pathname);
+    console.log("🔍 Extracted ID:", potentialId !== 'articles' ? potentialId : "None found");
+
     return potentialId !== 'articles' ? potentialId : null;
 };
 
-
 export async function PUT(req: Request) {
     const id = getIdFromUrl(req);
-    if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    // LOG: Track incoming body to ensure data is reaching the server
+    if (!id) {
+        console.error("❌ PUT Error: Missing ID in URL");
+        return NextResponse.json({ error: "ID required" }, { status: 400 });
+    }
 
     try {
         await connectDB();
         const data = await req.json();
+        console.log("📝 Updating article:", id, "with data:", Object.keys(data));
+
         const updated = await Article.findByIdAndUpdate(id, { ...data, updated_at: new Date() }, { new: true });
-        return updated ? NextResponse.json({ success: true }) : NextResponse.json({ error: "Not found" }, { status: 404 });
+
+        if (!updated) {
+            console.warn("⚠️ Article not found for update:", id);
+            return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
+
+        console.log("✅ Article updated successfully");
+        return NextResponse.json({ success: true });
     } catch (error: any) {
+        console.error("❌ PUT Server Error:", error.message);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
 export async function DELETE(req: Request) {
     const id = getIdFromUrl(req);
-    if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    if (!id) {
+        console.error("❌ DELETE Error: Missing ID in URL");
+        return NextResponse.json({ error: "ID required" }, { status: 400 });
+    }
 
     try {
         await connectDB();
+        console.log("🗑️ Attempting to delete article:", id);
+
         const deleted = await Article.findByIdAndDelete(id);
-        return deleted ? NextResponse.json({ success: true }) : NextResponse.json({ error: "Not found" }, { status: 404 });
+
+        if (!deleted) {
+            console.warn("⚠️ Article not found for deletion:", id);
+            return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
+
+        console.log("✅ Article deleted successfully");
+        return NextResponse.json({ success: true });
     } catch (error: any) {
+        console.error("❌ DELETE Server Error:", error.message);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
