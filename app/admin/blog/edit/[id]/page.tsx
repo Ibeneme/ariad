@@ -165,7 +165,7 @@ export default function EditArticlePage({
         metaTitle: isMetaTitleCustomized
           ? prev.metaTitle
           : `${value} | ARIAD Psychological Services`,
-        canonicalUrl: `https://ariadpsychservices.com/blog/${newSlug}`,
+        canonicalUrl: `https://ariad-web.netlify.app/blog/${newSlug}`,
       }));
     }
 
@@ -662,7 +662,7 @@ export default function EditArticlePage({
           formData.metaDescription || formData.excerpt.slice(0, 155),
         canonical_url:
           formData.canonicalUrl ||
-          `https://ariadpsychservices.com/blog/${formData.slug}`,
+          `https://ariad-web.netlify.app/blog/${formData.slug}`,
         structured_data: formData.structuredData
           ? JSON.parse(formData.structuredData)
           : null,

@@ -8,7 +8,7 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-const SITE_URL = "https://ariadpsychservices.com";
+const SITE_URL = "https://ariad-web.netlify.app";
 const SITE_NAME = "ARIAD Psychological Services";
 const TWITTER_HANDLE = "@ariadpsych"; // update if you have a real handle
 
