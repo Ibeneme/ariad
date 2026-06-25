@@ -10,9 +10,14 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  console.log("🟢 Server Page - Loading slug:", slug); // will show in Vercel logs
+
   const post = await getArticleBySlug(slug);
 
-  if (!post) return { title: "Article Not Found" };
+  if (!post) {
+    console.log("❌ Article not found for slug:", slug);
+    notFound();
+  }
 
   return {
     title: post.meta_title || post.title,

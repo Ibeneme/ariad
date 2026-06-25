@@ -55,25 +55,33 @@ export async function GET(
 // Re-export for use in Server Components
 export async function getArticleBySlug(slug: string) {
     console.log("🔄 [getArticleBySlug] Called with slug:", slug);
-
+  
     try {
-        await connectDB();
-        console.log("✅ MongoDB connected in getArticleBySlug");
-
-        const post = await Article.findOne({ slug }).lean();
-        console.log("📊 Post found in getArticleBySlug?", !!post);
-
-        if (post) {
-            console.log("✅ Found article title:", post.title);
-        }
-
-        return post ? JSON.parse(JSON.stringify(post)) : null;
+      await connectDB();
+      console.log("✅ MongoDB connected");
+  
+      // Try multiple ways to find the article
+      let post = await Article.findOne({ slug }).lean();
+  
+      if (!post) {
+        console.log("⚠️ Not found by exact slug, trying case-insensitive...");
+        post = await Article.findOne({ 
+          slug: { $regex: new RegExp(`^${slug}$`, 'i') } 
+        }).lean();
+      }
+  
+      console.log("📊 Post found?", !!post);
+      if (post) {
+        console.log("✅ Title:", post.title);
+        console.log("✅ Slug in DB:", post.slug);
+      }
+  
+      return post ? JSON.parse(JSON.stringify(post)) : null;
     } catch (error: any) {
-        console.error("❌ getArticleBySlug error:", error);
-        console.error("❌ Error message:", error.message);
-        return null;
+      console.error("❌ getArticleBySlug error:", error.message);
+      return null;
     }
-}
+  }
 
 export async function PUT(
     req: Request,
