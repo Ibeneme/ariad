@@ -2,7 +2,8 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BlogPostEach from "./BlogPostEach";
-import { getArticleBySlug } from "@/app/api/articles/[id]/route";
+import { getAllArticles, getArticleBySlug } from "@/app/api/articles/route";
+
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -10,10 +11,17 @@ type Props = {
 
 const SITE_URL = "https://ariad-web.netlify.app";
 const SITE_NAME = "ARIAD Psychological Services";
-const TWITTER_HANDLE = "@ariadpsych"; // update if you have a real handle
+const TWITTER_HANDLE = "@ariadpsych";
 
 function stripHtml(html: string = ""): string {
   return html.replace(/<[^>]*>/g, "").trim();
+}
+
+export async function generateStaticParams() {
+  const posts = await getAllArticles();
+  return posts.map((post: any) => ({
+    slug: post.slug,
+  }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,13 +42,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     post.excerpt ||
     stripHtml(post.content).slice(0, 160);
 
-  // og_image_url is missing on some posts in the DB — always fall back to image_url,
-  // then to a site-wide default so an image NEVER fails to render in shares
   const image =
     post.og_image_url || post.image_url || `${SITE_URL}/default-og.jpg`;
 
   const publishedTime = post.created_at;
-  const modifiedTime = post.updated_at || post.created_at;
+  const modifiedTime = post.created_at;
 
   return {
     title,
@@ -73,8 +79,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           alt: title,
         },
       ],
-      publishedTime,
-      modifiedTime,
+
       section: post.category,
       locale: "en_US",
     },
@@ -86,8 +91,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [image],
     },
     other: {
-      "article:published_time": publishedTime,
-      "article:modified_time": modifiedTime,
+ 
       "article:section": post.category || "",
     },
   };
@@ -95,22 +99,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await getArticleBySlug(slug);
+  let post = await getArticleBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  const url = post.canonical_url || `${SITE_URL}/blog/view/${slug}`;
-  const image =
-    post.og_image_url || post.image_url || `${SITE_URL}/default-og.jpg`;
-  const description =
-    post.meta_description ||
-    post.excerpt ||
-    stripHtml(post.content).slice(0, 160);
+  // 🔥 CRITICAL FIX: Convert Mongoose document to plain object
+  const plainPost = JSON.parse(JSON.stringify(post));
 
-  // Always build JSON-LD fresh from real post fields — never trust post.structured_data,
-  // it contains stale/mismatched test data in the current DB
+  const url = plainPost.canonical_url || `${SITE_URL}/blog/view/${slug}`;
+  const image =
+    plainPost.og_image_url ||
+    plainPost.image_url ||
+    `${SITE_URL}/default-og.jpg`;
+  const description =
+    plainPost.meta_description ||
+    plainPost.excerpt ||
+    stripHtml(plainPost.content).slice(0, 160);
+
+  // Always build JSON-LD fresh
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
@@ -118,12 +126,12 @@ export default async function BlogPostPage({ params }: Props) {
       "@type": "WebPage",
       "@id": url,
     },
-    headline: post.title,
+    headline: plainPost.title,
     description,
     image: [image],
-    datePublished: post.created_at,
-    dateModified: post.updated_at || post.created_at,
-    articleSection: post.category,
+    datePublished: plainPost.created_at,
+    dateModified: plainPost.updated_at || plainPost.created_at,
+    articleSection: plainPost.category,
     publisher: {
       "@type": "MedicalOrganization",
       name: SITE_NAME,
@@ -141,7 +149,7 @@ export default async function BlogPostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <BlogPostEach slug={slug} initialPost={post} />
+      <BlogPostEach slug={slug} initialPost={plainPost} />
     </>
   );
 }

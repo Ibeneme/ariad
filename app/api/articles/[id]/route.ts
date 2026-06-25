@@ -38,25 +38,6 @@ export async function GET(
     }
 }
 
-// Re-export for use in Server Components (public blog page)
-export async function getArticleBySlug(slug: string) {
-    try {
-        await connectDB();
-
-        let post = await Article.findOne({ slug }).lean();
-
-        if (!post) {
-            post = await Article.findOne({
-                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
-            }).lean();
-        }
-
-        return post ? JSON.parse(JSON.stringify(post)) : null;
-    } catch (error: any) {
-        console.error("❌ getArticleBySlug error:", error.message);
-        return null;
-    }
-}
 
 export async function PUT(
     req: Request,

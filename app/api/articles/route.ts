@@ -57,6 +57,42 @@ export async function POST(req: Request) {
     }
 }
 
+export async function getArticleBySlug(slug: string) {
+    console.log("🔍 getArticleBySlug called with:", slug);
+
+    try {
+        await connectDB();
+
+        let article = await Article.findOne({ slug }).lean();
+
+        // Case-insensitive fallback
+        if (!article) {
+            article = await Article.findOne({
+                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
+            }).lean();
+        }
+
+        console.log("✅ Article found:", article ? article.title : null);
+
+        return article;
+    } catch (error: any) {
+        console.error("❌ getArticleBySlug error:", error);
+        return null;
+    }
+}
+
+// Optional: Get all articles for listing / generateStaticParams
+export async function getAllArticles() {
+    try {
+        await connectDB();
+        return await Article.find({}).sort({ created_at: -1 }).lean();
+    } catch (error) {
+        console.error("Error fetching all articles:", error);
+        return [];
+    }
+}
+
+
 export async function GET() {
     try {
         await connectDB();
@@ -67,14 +103,3 @@ export async function GET() {
     }
 }
 
-// app/api/articles/route.ts
-export async function getArticleBySlug(slug: string) {
-    try {
-        await connectDB();
-        const post = await Article.findOne({ slug }).lean();
-        return post ? JSON.parse(JSON.stringify(post)) : null;
-    } catch (error) {
-        console.error("getArticleBySlug error:", error);
-        return null;
-    }
-}
