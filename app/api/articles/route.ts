@@ -8,7 +8,6 @@ export async function POST(req: Request) {
         await connectDB();
         const formData = await req.formData();
 
-        // Helper to safely extract strings from FormData
         function getString(val: FormDataEntryValue | null): string | null {
             return typeof val === 'string' ? val : null;
         }
@@ -27,10 +26,9 @@ export async function POST(req: Request) {
         }
 
         const articleData = {
-            title: title!, // The ! tells TS we know it's not null due to the early check
+            title: title!,
             slug: slug!,
             category: getString(formData.get('category')) || 'General',
-            // Use || "" to ensure it is always a string, satisfying the Schema
             excerpt: getString(formData.get('excerpt')) || "",
             content: getString(formData.get('content')) || "",
             meta_title: getString(formData.get('meta_title')) || "",
@@ -43,9 +41,15 @@ export async function POST(req: Request) {
 
         const newArticle = await Article.create(articleData);
 
+        // 🔥 Get ALL articles after creation
+        const allArticles = await getAllArticles();
+
         return NextResponse.json({
             success: true,
+            message: "Article created successfully",
             slug: newArticle.slug,
+            newArticle,           // newly created article
+            articles: allArticles // ← All articles returned
         }, { status: 201 });
 
     } catch (error: any) {
@@ -114,13 +118,14 @@ export async function getArticleById(id: string) {
 export async function getAllArticles() {
     try {
         await connectDB();
-        return await Article.find({}).sort({ created_at: -1 }).lean();
+        return await Article.find({})
+            .sort({ created_at: -1 })
+            .lean();
     } catch (error) {
         console.error("Error fetching all articles:", error);
         return [];
     }
 }
-
 
 export async function GET() {
     try {

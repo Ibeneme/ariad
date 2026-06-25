@@ -104,7 +104,7 @@ export default function CreateArticlePage() {
         metaTitle: isMetaTitleCustomized
           ? prev.metaTitle
           : `${value} | ARIAD Psychological Services`,
-        canonicalUrl: `https://ariadpsychservices.com/blog/${newSlug}`,
+        canonicalUrl: `https://ariad-sooty.vercel.app/blog/${newSlug}`,
       }));
     }
 
@@ -613,6 +613,7 @@ export default function CreateArticlePage() {
 
       setSuccess("Article published successfully!");
       setTimeout(() => {
+        router.refresh();
         router.push(`/admin/dashboard`);
       }, 1200);
     } catch (err: any) {

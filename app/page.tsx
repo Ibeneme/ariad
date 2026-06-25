@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description:
     "Expert psychological and neuropsychological evaluations in Dallas and Houston, Texas. ADHD testing, Autism (ASD) assessments, psychoeducational, and more. Compassionate care for children, teens, and adults.",
   alternates: {
-    canonical: "https://ariadpsychservices.com",
+    canonical: "https://ariad-sooty.vercel.app",
   },
   openGraph: {
     title: "ARIAD Psychological Services — Dallas & Houston",
     description:
       "Specialized ADHD, Autism, and Psychoeducational testing with experienced clinicians.",
-    url: "https://ariadpsychservices.com",
+    url: "https://ariad-sooty.vercel.app",
     type: "website",
     images: [{ url: "/images/og-home.jpg", width: 1200, height: 630 }],
   },
@@ -34,7 +34,7 @@ export default function Home() {
     name: "ARIAD Psychological Services, PLLC",
     description:
       "Professional psychological and neuropsychological assessment services in Texas.",
-    url: "https://ariadpsychservices.com",
+    url: "https://ariad-sooty.vercel.app",
     address: {
       "@type": "PostalAddress",
       streetAddress: "4131 N Central Expy Suite 900",

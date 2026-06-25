@@ -145,10 +145,10 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
-      <script
+      {/* <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      /> */}
       <EditArticleClient article={plainPost} id={id} />;
     </>
   );
