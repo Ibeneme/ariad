@@ -1,11 +1,11 @@
 // app/api/articles/[id]/route.ts
-// NOTE: despite the folder being named [id], this route is effectively slug-based
-// (kept as-is for the public blog page, which calls getArticleBySlug).
-// For admin edit-by-_id lookups, use /api/articles/by-id/[id] instead.
+// NOTE: despite the folder being named [id], this route is effectively slug-based for GET
+// (for admin edit-by-_id lookups, use /api/articles/by-id/[id] instead)
 
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Article from '@/lib/models/Article';
+import { getArticleBySlug } from '../route';   // ← Shared helper
 
 export async function GET(
     req: Request,
@@ -14,15 +14,7 @@ export async function GET(
     try {
         const { id: slug } = await params;
 
-        await connectDB();
-
-        let article = await Article.findOne({ slug }).lean();
-
-        if (!article) {
-            article = await Article.findOne({
-                slug: { $regex: new RegExp(`^${slug}$`, 'i') }
-            }).lean();
-        }
+        const article = await getArticleBySlug(slug);
 
         if (!article) {
             return NextResponse.json({ error: "Article not found" }, { status: 404 });
@@ -37,7 +29,6 @@ export async function GET(
         }, { status: 500 });
     }
 }
-
 
 export async function PUT(
     req: Request,
