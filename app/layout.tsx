@@ -16,7 +16,13 @@ const geistMono = Geist_Mono({
   weight: ["400", "500", "700"],
 });
 
+// IMPORTANT: this must match whatever domain you're actually testing/sharing right now.
+// Once your custom domain (ariadpsychservices.com) is live and pointed at this site,
+// switch this — and every other SITE_URL in the project — to that domain instead.
+const SITE_URL = "https://ariad-web.netlify.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "ARIAD Psychological Services | Dallas, Texas",
     template: "%s | ARIAD Psychological Services",
@@ -42,11 +48,11 @@ export const metadata: Metadata = {
     title: "ARIAD Psychological Services | Expert Testing in Dallas",
     description:
       "Specialized ADHD, Autism, and Neuropsychological testing services in Dallas, Texas.",
-    url: "https://yourdomain.com", // ← Change to your real domain later
+    url: SITE_URL,
     siteName: "ARIAD Psychological Services",
     images: [
       {
-        url: "/og-image.png", // You can add this later
+        url: "/og-image.png", // resolves to SITE_URL/og-image.png via metadataBase
         width: 1200,
         height: 630,
         alt: "ARIAD Psychological Services",
