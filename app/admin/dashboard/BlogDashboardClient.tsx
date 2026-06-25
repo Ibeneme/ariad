@@ -90,13 +90,13 @@ export default function BlogDashboardClient() {
 
     try {
       const adminToken = localStorage.getItem("adminToken");
-      
+
       const res = await fetch(`/api/articles?id=${postId}`, {
         method: "DELETE", // Changed from PUT to DELETE
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           // Include auth if your API is protected
-          "Authorization": `Bearer ${adminToken}` 
+          Authorization: `Bearer ${adminToken}`,
         },
       });
 
@@ -189,7 +189,10 @@ export default function BlogDashboardClient() {
                     key={post._id}
                     post={post}
                     isLoading={false}
-                    onEdit={() => router.push(`/admin/blog/edit/${post._id}`)}
+                    onEdit={() => {
+                      console.warn("kkk"),
+                      router.push(`/admin/blog/edit/${post._id}`);
+                    }}
                     onDelete={() => handleDeleteClick(post)}
                     onView={() =>
                       router.push(`/blog/view/${post.slug || post._id}`)
