@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build" # or use yarn build, pnpm build
+  command = "npm run build" 
   publish = "public"
 
 [[plugins]]
