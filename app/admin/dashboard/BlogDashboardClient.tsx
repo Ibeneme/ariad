@@ -89,17 +89,13 @@ export default function BlogDashboardClient() {
     setDeletingId(postId);
 
     try {
-      const adminToken = localStorage.getItem("adminToken");
-      if (!adminToken) {
-        throw new Error("Authentication required. Please log in again.");
-      }
+      // const adminToken = localStorage.getItem("adminToken");
+      // if (!adminToken) {
+      //   throw new Error("Authentication required. Please log in again.");
+      // }
 
       const res = await fetch(`/api/articles/${postId}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${adminToken}`,
-        },
       });
 
       if (!res.ok) {
