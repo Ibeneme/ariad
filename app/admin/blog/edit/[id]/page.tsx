@@ -18,9 +18,11 @@ function stripHtml(html: string = ""): string {
 
 export async function generateStaticParams() {
   const posts = await getAllArticles();
-  return posts.map((post: any) => ({
-    id: post.id,
-  }));
+  return posts
+    .filter((post: any) => post && (post.id || post._id))
+    .map((post: any) => ({
+      id: String(post.id ?? post._id),
+    }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
