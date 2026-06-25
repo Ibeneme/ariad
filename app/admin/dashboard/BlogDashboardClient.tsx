@@ -89,23 +89,29 @@ export default function BlogDashboardClient() {
     setDeletingId(postId);
 
     try {
-      // const adminToken = localStorage.getItem("adminToken");
-      // if (!adminToken) {
-      //   throw new Error("Authentication required. Please log in again.");
-      // }
-
+      const adminToken = localStorage.getItem("adminToken");
+      
       const res = await fetch(`/api/articles?id=${postId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(postToDelete),
+        method: "DELETE", // Changed from PUT to DELETE
+        headers: { 
+          "Content-Type": "application/json",
+          // Include auth if your API is protected
+          "Authorization": `Bearer ${adminToken}` 
+        },
       });
 
-      // Optimistic update
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to delete the post.");
+      }
+
+      // Optimistic update: Remove from state only if server call succeeded
       setPosts((prev) => prev.filter((p) => p._id !== postId));
 
       setShowDeleteModal(false);
       setPostToDelete(null);
     } catch (error: any) {
+      console.error("Delete error:", error);
       alert(`Delete failed: ${error.message}`);
     } finally {
       setDeletingId(null);
