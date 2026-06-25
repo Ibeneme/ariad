@@ -14,6 +14,7 @@ import {
   Search,
 } from "lucide-react";
 import Image from "next/image";
+import { getAllArticles, getArticleById } from "@/app/api/articles/route";
 
 type BlogPost = {
   _id?: string;
@@ -82,18 +83,30 @@ export default function BlogDashboardClient() {
 
   const confirmDelete = async () => {
     if (!postToDelete?._id) return;
-
+  
     const postId = postToDelete._id;
     setDeletingId(postId);
-
+  
     try {
-      // Get admin token from localStorage
+      // Type fix
+      let articleToDelete: any = await getArticleById(postId);
+  
+      if (!articleToDelete) {
+        const allArticles = await getAllArticles();
+        articleToDelete = allArticles.find(
+          (a: any) => a?._id?.toString() === postId
+        );
+      }
+  
+      if (!articleToDelete) {
+        throw new Error("Article not found");
+      }
+  
       const adminToken = localStorage.getItem("adminToken");
-
       if (!adminToken) {
         throw new Error("Authentication required. Please log in again.");
       }
-
+  
       const res = await fetch(`/api/articles/${postId}`, {
         method: "DELETE",
         headers: {
@@ -101,15 +114,14 @@ export default function BlogDashboardClient() {
           Authorization: `Bearer ${adminToken}`,
         },
       });
-
+  
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || "Failed to delete article");
       }
-
-      // Optimistic update
+  
       setPosts((prev) => prev.filter((p) => p._id !== postId));
-
+  
       setShowDeleteModal(false);
       setPostToDelete(null);
     } catch (error: any) {
