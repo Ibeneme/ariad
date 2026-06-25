@@ -93,7 +93,10 @@ export default function BlogDashboardClient() {
         throw new Error(errorData.error || "Failed to delete");
       }
 
-      setPosts((prev) => prev.filter((p) => p._id !== postId));
+      // Functional update ensures you don't use stale post list data
+      setPosts((prevPosts) => prevPosts.filter((p) => p._id !== postId));
+
+      // Close modal on success
       setShowDeleteModal(false);
       setPostToDelete(null);
     } catch (error: any) {
